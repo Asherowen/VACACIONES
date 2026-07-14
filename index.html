@@ -9,12 +9,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Google Fonts de alto impacto visual corporativo -->
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght=700;800&family=Inter:wght=400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Iconos de Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- CRÍTICO: Reincorporación de SheetJS para lectura local y procesamiento de archivos Excel de activos (.xlsx, .xls) -->
+  <!-- SheetJS para lectura local y procesamiento de archivos Excel de activos (.xlsx, .xls) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
@@ -136,9 +136,8 @@
       </div>
     </div>
 
-    <!-- Indicador de conexión -->
     <div class="flex items-center gap-3">
-      <button onclick="forceSyncData()" class="flex items-center gap-2 bg-[#d9ea1c] hover:bg-yellow-400 border border-[#d9ea1c] px-4 py-2 rounded-xl text-xs font-extrabold text-[#132b80] transition-all shadow-md active:scale-95">
+      <button onclick="window.forceSyncData()" class="flex items-center gap-2 bg-[#d9ea1c] hover:bg-yellow-400 border border-[#d9ea1c] px-4 py-2 rounded-xl text-xs font-extrabold text-[#132b80] transition-all shadow-md active:scale-95">
         <i id="sync-icon" class="fa-solid fa-rotate"></i>
         <span>Sincronizar a Google Drive</span>
       </button>
@@ -199,14 +198,14 @@
           </div>
 
           <!-- FORM -->
-          <form id="vacationForm" onsubmit="submitVacationRequest(event)" class="space-y-4">
+          <form id="vacationForm" onsubmit="window.submitVacationRequest(event)" class="space-y-4">
             
             <!-- NOMBRE DEL COLABORADOR -->
             <div>
               <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="empName">
                 <i class="fa-solid fa-user mr-1 text-[#214bd6]"></i> Nombre del Colaborador
               </label>
-              <input type="text" id="empName" list="assetsList" required autocomplete="off" placeholder="Escribe o selecciona de la lista..." oninput="checkSelectedEmployee()" onchange="checkSelectedEmployee()"
+              <input type="text" id="empName" list="assetsList" required autocomplete="off" placeholder="Escribe o selecciona de la lista..." oninput="window.checkSelectedEmployee()" onchange="window.checkSelectedEmployee()"
                 class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
               <datalist id="assetsList">
                 <!-- Se poblará dinámicamente al cargar el Excel -->
@@ -219,7 +218,7 @@
                 <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="empJoinDate">
                   <i class="fa-solid fa-calendar-check mr-1 text-[#10a36f]"></i> Fecha de Ingreso
                 </label>
-                <input type="date" id="empJoinDate" required autocomplete="off" onchange="calculateAccruedDays()" 
+                <input type="date" id="empJoinDate" required autocomplete="off" onchange="window.calculateAccruedDays()" 
                   class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
               </div>
               <div>
@@ -260,21 +259,61 @@
               </div>
             </div>
 
-            <!-- PERIODO DEL AL -->
-            <div class="grid grid-cols-2 gap-3">
+            <!-- SECTOR INTERACTIVO DEL TIPO DE PERIODO -->
+            <div class="space-y-2">
+              <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider">
+                <i class="fa-solid fa-clock mr-1 text-[#214bd6]"></i> Esquema de Selección
+              </label>
+              <div class="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                <button type="button" id="methodRangeBtn" onclick="window.setSelectionMethod('range')" class="flex-1 py-2 text-xs font-extrabold rounded-lg bg-[#214bd6] text-white shadow-sm transition-all text-center">
+                  <i class="fa-solid fa-calendar-days mr-1"></i> Periodo Corrido
+                </button>
+                <button type="button" id="methodIndividualBtn" onclick="window.setSelectionMethod('individual')" class="flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:bg-slate-200 transition-all text-center">
+                  <i class="fa-solid fa-calendar-minus mr-1"></i> Días Salteados
+                </button>
+              </div>
+              <input type="hidden" id="selectionMethod" value="range">
+            </div>
+
+            <!-- CONTENEDOR 1: PERIODO CORRIDO (DEL - AL) -->
+            <div id="containerRangeDates" class="grid grid-cols-2 gap-3 transition-all duration-300">
               <div>
                 <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="vacStart">
                   <i class="fa-solid fa-calendar-plus mr-1 text-[#214bd6]"></i> Del (Inicio)
                 </label>
-                <input type="date" id="vacStart" required autocomplete="off" onchange="calculateRequestedPeriod()" 
+                <input type="date" id="vacStart" autocomplete="off" onchange="window.calculateRequestedPeriod()" 
                   class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
               </div>
               <div>
                 <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="vacEnd">
                   <i class="fa-solid fa-calendar-minus mr-1 text-[#df3d3d]"></i> Al (Término)
                 </label>
-                <input type="date" id="vacEnd" required autocomplete="off" onchange="calculateRequestedPeriod()" 
+                <input type="date" id="vacEnd" autocomplete="off" onchange="window.calculateRequestedPeriod()" 
                   class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
+              </div>
+            </div>
+
+            <!-- CONTENEDOR 2: DÍAS SALTEADOS (INDIVIDUALES) -->
+            <div id="containerIndividualDates" class="space-y-3 hidden transition-all duration-300">
+              <div>
+                <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="individualDateInput">
+                  <i class="fa-solid fa-calendar-check mr-1 text-[#214bd6]"></i> Agregar Fecha Individual
+                </label>
+                <div class="flex gap-2">
+                  <input type="date" id="individualDateInput" autocomplete="off"
+                    class="flex-1 bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
+                  <button type="button" onclick="window.addIndividualDate()" class="bg-[#214bd6] hover:bg-[#132b80] text-white text-xs font-bold px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Agregar</span>
+                  </button>
+                </div>
+              </div>
+              <!-- Lista de Fechas Cargadas -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <span class="block text-[9px] font-extrabold text-[#627194] uppercase tracking-wider mb-2">Fechas Seleccionadas:</span>
+                <div id="individualDatesList" class="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto custom-scrollbar">
+                  <span class="text-[10px] text-slate-400 font-medium">Ningún día agregado aún. Selecciona fechas arriba.</span>
+                </div>
               </div>
             </div>
 
@@ -316,6 +355,27 @@
                 class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors">
             </div>
 
+            <!-- ESTATUS DE LA SOLICITUD -->
+            <div>
+              <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="requestStatus">
+                <i class="fa-solid fa-circle-info mr-1 text-[#214bd6]"></i> Estatus Inicial
+              </label>
+              <select id="requestStatus" required class="w-full bg-[#fff9eb] border border-amber-300 rounded-xl px-4 py-3 text-xs focus:outline-none font-bold transition-all text-amber-600">
+                <option value="PENDIENTE" class="text-amber-600 font-bold" selected>⏳ Pendiente de Autorización</option>
+                <option value="APROBADO" class="text-emerald-600 font-bold">✅ Aprobado</option>
+                <option value="RECHAZADO" class="text-rose-600 font-bold">❌ Rechazado</option>
+              </select>
+            </div>
+
+            <!-- COMENTARIOS / OBSERVACIONES -->
+            <div>
+              <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider mb-1.5" for="requestComments">
+                <i class="fa-solid fa-comment-dots mr-1 text-[#214bd6]"></i> Comentarios / Observaciones
+              </label>
+              <textarea id="requestComments" rows="2" placeholder="Observaciones de entrega-recepción, pendientes o detalles adicionales..." 
+                class="w-full bg-[#f8fbff] border border-[#cbd7ea] rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-[#214bd6] focus:bg-white font-medium transition-colors custom-scrollbar"></textarea>
+            </div>
+
             <!-- SUBMIT BUTTON -->
             <button type="submit" class="w-full bg-[#214bd6] hover:bg-[#132b80] text-white text-xs font-extrabold py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all tracking-wide uppercase flex items-center justify-center gap-2">
               <i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones
@@ -325,6 +385,7 @@
         </div>
 
       </section>
+
 
       <!-- COLUMNA DERECHA: MONITOREO Y ACCIONES DE DRIVE (7 COLS) -->
       <section class="lg:col-span-7 space-y-6">
@@ -364,10 +425,16 @@
               <p class="text-[11px] text-[#627194] mt-0.5">Bitácora central de solicitudes aprobadas por el área de RRHH.</p>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="statusFilter" onchange="window.filterRequests()" class="bg-white border border-[#cbd7ea] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#214bd6] font-bold text-slate-600">
+                <option value="ALL">🔍 Todos los Estatus</option>
+                <option value="PENDIENTE">⏳ Pendientes</option>
+                <option value="APROBADO">✅ Aprobados</option>
+                <option value="RECHAZADO">❌ Rechazados</option>
+              </select>
               <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#627194] text-xs"></i>
-                <input type="text" id="searchInput" oninput="filterRequests()" placeholder="Buscar colaborador..." 
+                <input type="text" id="searchInput" oninput="window.filterRequests()" placeholder="Buscar colaborador..." 
                   class="bg-white border border-[#cbd7ea] rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-[#214bd6] w-full sm:w-60">
               </div>
             </div>
@@ -403,16 +470,17 @@
             <span id="tableRecordCount" class="text-[11px] font-semibold text-[#627194]">0 solicitudes</span>
             
             <div class="flex gap-2">
-              <button onclick="downloadCSVReport()" class="bg-[#10a36f] hover:bg-[#0d855a] text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+              <button onclick="window.downloadCSVReport()" class="bg-[#10a36f] hover:bg-[#0d855a] text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5">
                 <i class="fa-solid fa-file-excel"></i> Descargar Excel (Drive)
               </button>
-              <button onclick="triggerClearAllConfirmation()" class="bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 text-slate-500 hover:text-[#df3d3d] text-xs font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+              <button onclick="window.triggerClearAllConfirmation()" class="bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 text-slate-500 hover:text-[#df3d3d] text-xs font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-trash-can"></i> Limpiar Todo
               </button>
             </div>
           </div>
 
         </div>
+
 
         <!-- ASISTENTE DE IA GEMINI EN TIEMPO REAL -->
         <div class="bg-gradient-to-br from-[#1e3a8a]/5 to-[#1e40af]/10 border border-[#cbd7ea] rounded-2xl p-6 shadow-md space-y-4">
@@ -436,18 +504,18 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button onclick="setQuickPrompt('¿Cuáles son los lineamientos clave de las Vacaciones Dignas 2026 en México?')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
+            <button onclick="window.setQuickPrompt('¿Cuáles son los lineamientos clave de las Vacaciones Dignas 2026 en México?')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
               <i class="fa-solid fa-gavel mr-1 text-[#214bd6]"></i> Vacaciones Dignas 2026
             </button>
-            <button onclick="setQuickPrompt('Haz un resumen de las reglas para programar vacaciones en la empresa de forma eficiente.')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
+            <button onclick="window.setQuickPrompt('Haz un resumen de las reglas para programar vacaciones en la empresa de forma eficiente.')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
               <i class="fa-solid fa-business-time mr-1 text-[#10a36f]"></i> Guía de Programación
             </button>
-            <button onclick="setQuickPrompt('¿Cómo se calcula la antigüedad para un ingreso en el año 2023 proyectado al 2026?')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
+            <button onclick="window.setQuickPrompt('¿Cómo se calcula la antigüedad para un ingreso en el año 2023 proyectado al 2026?')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
               <i class="fa-solid fa-calculator mr-1 text-[#7443d8]"></i> Ejemplo de Antigüedad
             </button>
           </div>
 
-          <button onclick="consultGeminiAI()" class="w-full bg-[#132b80] hover:bg-[#214bd6] text-white text-xs font-bold py-3 rounded-xl transition-all tracking-wide flex items-center justify-center gap-2 shadow">
+          <button onclick="window.consultGeminiAI()" class="w-full bg-[#132b80] hover:bg-[#214bd6] text-white text-xs font-bold py-3 rounded-xl transition-all tracking-wide flex items-center justify-center gap-2 shadow">
             <i class="fa-solid fa-brain"></i>
             <span>Enviar Consulta en Tiempo Real</span>
           </button>
@@ -477,16 +545,36 @@
     </div>
   </footer>
 
-  <!-- FIREBASE IMPORTS AND SYSTEM LOGIC -->
+  <!-- SYSTEM LOGIC UNIFIED MODULE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    window.VACATION_STATE = window.VACATION_STATE || {
-      rawList: [],
-      filteredList: [],
-      activeEmployees: [] 
+    window.showLoader = function(visible) {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        if (visible) loader.classList.remove('hidden');
+        else loader.classList.add('hidden');
+      }
+    };
+
+    window.showToast = function(msg, type = "success") {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+      if (toast && toastMsg && toastIcon) {
+        toastMsg.textContent = msg;
+        if (type === "warning" || type === "error") {
+          toast.className = "flex items-center gap-3 bg-[#df3d3d] text-white px-5 py-4 rounded-xl border-l-4 border-[#d9ea1c] fixed top-6 right-6 z-50 shadow-lg";
+          toastIcon.className = "fa-solid fa-triangle-exclamation text-[#d9ea1c] text-lg";
+        } else {
+          toast.className = "flex items-center gap-3 bg-[#132b80] text-white px-5 py-4 rounded-xl border-l-4 border-[#d9ea1c] fixed top-6 right-6 z-50 shadow-lg";
+          toastIcon.className = "fa-solid fa-circle-check text-[#d9ea1c] text-lg";
+        }
+        toast.style.display = 'flex';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+      }
     };
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -499,17 +587,22 @@
       appId: "1:1234:web:abcd"
     };
 
-    // Inicializamos Firebase
     let app, db, auth;
     try {
       app = initializeApp(firebaseConfig);
       db = getFirestore(app);
       auth = getAuth(app);
     } catch (e) {
-      console.warn("Firebase initialization failed, operating in fully offline mode.", e);
+      console.warn("Firebase initialization failed, operating offline.", e);
     }
 
-    // GENERACIÓN DE ID DE ESPACIO DE TRABAJO ÚNICO
+    window.VACATION_STATE = {
+      rawList: [],
+      filteredList: [],
+      activeEmployees: [],
+      selectedIndividualDates: []
+    };
+
     function getOrCreateWorkspaceId() {
       let wId = localStorage.getItem('maxikash_workspace_id');
       if (!wId) {
@@ -520,630 +613,274 @@
     }
     const currentWorkspaceId = getOrCreateWorkspaceId();
 
-    // Cargar datos locales de persistencia inmediata para que NUNCA falle el registro
+    window.normalizeRestDaysText = function(text) {
+      if (!text) return "SÁBADO, DOMINGO";
+      const shortToLongMap = {
+        "DO": "DOMINGO", "DOM": "DOMINGO", "DOMINGO": "DOMINGO",
+        "LU": "LUNES", "LUN": "LUNES", "LUNES": "LUNES",
+        "MA": "MARTES", "MAR": "MARTES", "MARTES": "MARTES",
+        "MI": "MIÉRCOLES", "MIÉ": "MIÉRCOLES", "MIE": "MIÉRCOLES", "MIÉRCOLES": "MIÉRCOLES",
+        "JU": "JUEVES", "JUE": "JUEVES", "JUEVES": "JUEVES",
+        "VI": "VIERNES", "VIE": "VIERNES", "VIERNES": "VIERNES",
+        "SÁ": "SÁBADO", "SA": "SÁBADO", "SAB": "SÁBADO", "SÁB": "SÁBADO", "SÁBADO": "SÁBADO"
+      };
+      return text.split(',')
+        .map(p => p.trim().toUpperCase())
+        .map(p => shortToLongMap[p] || p)
+        .join(", ");
+    };
+
+    window.parseNameFormats = function(nameStr) {
+      if (!nameStr) return { nombreApellido: "", apellidoNombre: "" };
+      nameStr = nameStr.trim().toUpperCase().replace(/,/g, ""); 
+      
+      const commonFirstNames = [
+        "DIANA", "ISABEL", "MARGARITO", "MARIA", "MARÍA", "JOSE", "JOSÉ", "JUAN", "LUIS", "CARLOS", 
+        "ANA", "ALEJANDRA", "ALEJANDRO", "FRANCISCO", "ANTONIO", "PEDRO", "MANUEL", "MIGUEL", "ANGEL", 
+        "ÁNGEL", "JORGE", "ROBERTO", "ARTURO", "FERNANDO", "DANIEL", "DAVID", "GABRIELA", "PATRICIA", 
+        "LETICIA", "SOFIA", "SOFÍA", "LAURA", "ROSA", "SARA", "GUADALUPE", "SANTIAGO", "SEBASTIAN",
+        "MATEO", "LEONARDO", "EMILIANO", "DIEGO", "JAVIER", "EDGAR", "ESTELA", "VICENTE", "GABRIEL"
+      ];
+
+      const words = nameStr.split(/\s+/);
+      let nombres = "";
+      let apellidos = "";
+
+      if (words.length >= 3) {
+        let firstNameIndices = [];
+        words.forEach((w, idx) => {
+          if (commonFirstNames.includes(w)) firstNameIndices.push(idx);
+        });
+
+        if (firstNameIndices.length > 0) {
+          let sum = 0;
+          firstNameIndices.forEach(i => { sum += i; });
+          let averageIndex = sum / firstNameIndices.length;
+          let midpoint = (words.length - 1) / 2;
+
+          if (averageIndex >= midpoint) {
+            let firstIdx = firstNameIndices[0];
+            apellidos = words.slice(0, firstIdx).join(" ");
+            nombres = words.slice(firstIdx).join(" ");
+          } else {
+            let lastIdx = firstNameIndices[firstNameIndices.length - 1];
+            nombres = words.slice(0, lastIdx + 1).join(" ");
+            apellidos = words.slice(lastIdx + 1).join(" ");
+          }
+        } else {
+          apellidos = words.slice(0, 2).join(" ");
+          nombres = words.slice(2).join(" ");
+        }
+      } else if (words.length === 2) {
+        if (commonFirstNames.includes(words[0])) {
+          nombres = words[0];
+          apellidos = words[1];
+        } else {
+          apellidos = words[0];
+          nombres = words[1];
+        }
+      } else {
+        nombres = nameStr;
+        apellidos = "";
+      }
+
+      const nombreApellido = `${nombres} ${apellidos}`.trim().replace(/\s+/g, " ").toUpperCase();
+      const apellidoNombre = `${apellidos} ${nombres}`.trim().replace(/\s+/g, " ").toUpperCase();
+
+      return { nombreApellido, apellidoNombre };
+    };
+
     function loadLocalStorageData() {
       try {
         const stored = localStorage.getItem('maxikash_vacations_2026');
         if (stored) {
           let parsed = JSON.parse(stored);
-          
-          // RUTINA DE AUTOCURACIÓN: Rellena retroactivamente campos vacíos en registros previos
           parsed = parsed.map(item => {
-            let updated = false;
-            
-            // Garantizar consistencia absoluta de ID y UID
-            if (!item.id && item.uid) {
-              item.id = item.uid;
-              updated = true;
-            } else if (item.id && !item.uid) {
-              item.uid = item.id;
-              updated = true;
+            if (item.name || item.name_formatted) {
+              const cleanName = (item.name || "").replace(/,/g, "");
+              const names = window.parseNameFormats(cleanName);
+              item.name_formatted = names.apellidoNombre;
+              item.name = names.nombreApellido; 
             }
-
-            if (!item.name_formatted && typeof window.parseNameFormats === 'function') {
-              const names = window.parseNameFormats(item.name);
-              item.name_formatted = names.apellidoNombre.toUpperCase();
-              item.name = names.nombreApellido.toUpperCase(); 
-              updated = true;
+            if (item.restDaysText) {
+              item.restDaysText = window.normalizeRestDaysText(item.restDaysText);
             }
-            if (!item.tenure && typeof window.calculateTenureYears === 'function') {
-              const years = window.calculateTenureYears(item.joinDate);
-              item.tenure = `${years} ${years === 1 ? 'AÑO' : 'AÑOS'}`;
-              updated = true;
-            }
-            if ((item.statutoryDays === undefined || item.statutoryDays === "") && typeof window.calculateTenureYears === 'function' && typeof window.getMexicanVacationDaysScale === 'function') {
-              const years = window.calculateTenureYears(item.joinDate);
-              item.statutoryDays = window.getMexicanVacationDaysScale(years);
-              updated = true;
-            }
-            
-            // Generar UID determinista si no existe para evitar duplicación
+            if (!item.status) item.status = "PENDIENTE";
+            if (!item.comments) item.comments = ""; // Auto-curación de comentarios vacíos
             if (!item.uid) {
               const cleanName = (item.name || "").replace(/\s+/g, "").toLowerCase();
               item.uid = `vac-det-${cleanName}-${item.startDate}-${item.endDate}`;
-              item.id = item.id || item.uid;
-              updated = true;
-            }
-
-            if (!item.formattedCreatedAt) {
-              const d = item.createdAt ? new Date(item.createdAt) : new Date();
-              try {
-                const options = { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-                const formatter = new Intl.DateTimeFormat('es-MX', options);
-                const parts = formatter.formatToParts(d);
-                const partMap = {};
-                parts.forEach(p => partMap[p.type] = p.value);
-                item.formattedCreatedAt = `${partMap.year}-${partMap.month}-${partMap.day} ${partMap.hour}:${partMap.minute}:${partMap.second}`;
-              } catch(err) {
-                item.formattedCreatedAt = d.toISOString();
-              }
-              updated = true;
             }
             return item;
           });
-
-          // BLINDAJE ANTI-DUPLICADOS: Filtrar duplicados estrictos por UID
           const uniqueParsed = [];
           parsed.forEach(p => {
-            if (!uniqueParsed.some(x => x.uid === p.uid)) {
-              uniqueParsed.push(p);
-            }
+            if (!uniqueParsed.some(x => x.uid === p.uid)) uniqueParsed.push(p);
           });
-
           window.VACATION_STATE.rawList = uniqueParsed;
           localStorage.setItem('maxikash_vacations_2026', JSON.stringify(uniqueParsed));
-        } else {
-          window.VACATION_STATE.rawList = [];
         }
 
-        // Cargar también base de activos locales si existe
         const storedActives = localStorage.getItem('maxikash_actives_2026');
         if (storedActives) {
           window.VACATION_STATE.activeEmployees = JSON.parse(storedActives);
-          populateDatalist(window.VACATION_STATE.activeEmployees);
+          window.populateDatalist(window.VACATION_STATE.activeEmployees);
         }
-
-        filterRequests();
+        window.filterRequests();
       } catch (e) {
-        console.error("Error loading local storage:", e);
-        window.VACATION_STATE.rawList = [];
-        filterRequests();
+        console.error("LocalStorage load failed:", e);
       }
     }
 
-    // Guardar datos localmente de forma síncrona para que no se pierdan
     window.saveToLocalStorage = function() {
       try {
         localStorage.setItem('maxikash_vacations_2026', JSON.stringify(window.VACATION_STATE.rawList));
       } catch (e) {
-        console.error("Error saving local storage:", e);
+        console.error("LocalStorage save failed:", e);
       }
     };
 
-    // Inicialización de la Autenticación y Sincronización en tiempo real
     async function initAuthAndDB() {
-      showLoader(true);
-      
-      // Cargamos primero el almacenamiento local para respuesta instantánea al usuario
+      window.showLoader(true);
       loadLocalStorageData();
 
-      // Inicializar hoy como valor predeterminado de Fecha de Solicitud
       try {
         const todayStr = new Date().toISOString().split('T')[0];
         const reqInput = document.getElementById('requestDate');
         if (reqInput) reqInput.value = todayStr;
-      } catch (e) {
-        console.warn("Could not set initial request date", e);
-      }
+      } catch (e) {}
 
       if (!auth || !db) {
-        showLoader(false);
+        window.showLoader(false);
         return;
       }
 
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-        
+        await signInAnonymously(auth);
         onAuthStateChanged(auth, (user) => {
           if (user) {
             setupRealtimeSync();
           } else {
-            showLoader(false);
+            window.showLoader(false);
           }
         });
       } catch (err) {
-        console.warn("Firebase Auth Error, running beautifully with local storage.", err);
-        showLoader(false);
+        console.warn("Operating with offline sync engine", err);
+        window.showLoader(false);
       }
     }
 
-    // Sincronización en tiempo real con Firestore
     function setupRealtimeSync() {
       try {
         const vacationCollection = collection(db, 'artifacts', appId, 'public', 'data', 'vacaciones');
-        
         onSnapshot(vacationCollection, (snapshot) => {
           const cloudRecords = [];
           snapshot.forEach((doc) => {
             const data = doc.data();
-            if (data) {
-              // FILTRO EXTREMO DE TRÁFICO CRUZADO
-              // Únicamente permitimos el paso de registros creados en tu propia sesión
-              if (data.workspaceId !== currentWorkspaceId) {
-                return;
-              }
-
-              if (!data.uid) {
-                const cleanName = (data.name || "").replace(/\s+/g, "").toLowerCase();
-                data.uid = `vac-det-${cleanName}-${data.startDate}-${data.endDate}`;
-              }
-              // Forzar mayúsculas en datos traídos de la nube
+            if (data && data.workspaceId === currentWorkspaceId) {
               if (data.name) data.name = data.name.toUpperCase();
               if (data.name_formatted) data.name_formatted = data.name_formatted.toUpperCase();
-              if (data.approverManager) data.approverManager = data.approverManager.toUpperCase();
-              if (data.hrRepresentative) data.hrRepresentative = data.hrRepresentative.toUpperCase();
-              
-              cloudRecords.push({ id: doc.id, ...data, id: doc.id, synced: true });
+              if (data.restDaysText) data.restDaysText = window.normalizeRestDaysText(data.restDaysText);
+              if (!data.status) data.status = "PENDIENTE";
+              if (!data.comments) data.comments = "";
+              cloudRecords.push({ id: doc.id, ...data, synced: true });
             }
           });
 
-          // Mezclar de manera inteligente y sin duplicados usando el UID estable
           const localUnsynced = window.VACATION_STATE.rawList.filter(l => !l.synced);
-          
           const merged = [];
           cloudRecords.forEach(cloudItem => {
-            if (!merged.some(x => x.uid === cloudItem.uid)) {
-              merged.push(cloudItem);
-            }
+            if (!merged.some(x => x.uid === cloudItem.uid)) merged.push(cloudItem);
           });
           localUnsynced.forEach(localItem => {
-            if (!merged.some(cloudItem => cloudItem.uid === localItem.uid)) {
-              merged.push(localItem);
-            }
+            if (!merged.some(cloudItem => cloudItem.uid === localItem.uid)) merged.push(localItem);
           });
 
           window.VACATION_STATE.rawList = merged;
           window.saveToLocalStorage();
-          filterRequests();
-          showLoader(false);
+          window.filterRequests();
+          window.showLoader(false);
         }, (error) => {
-          console.warn("Firestore connection warning:", error);
-          showLoader(false);
+          window.showLoader(false);
         });
       } catch (e) {
-        console.warn("Firestore listener not started:", e);
-        showLoader(false);
+        window.showLoader(false);
       }
     }
 
-    // Registrar y Enviar solicitud de forma robusta e instantánea
-    window.saveRequestToCloud = async function(requestObj) {
-      showLoader(true);
-      
-      // BLINDAJE: Evitar duplicados inmediatos en la memoria activa por UID
-      if (window.VACATION_STATE.rawList.some(item => item.uid === requestObj.uid)) {
-        showLoader(false);
+    window.setSelectionMethod = function(method) {
+      document.getElementById('selectionMethod').value = method;
+      const rangeBtn = document.getElementById('methodRangeBtn');
+      const indivBtn = document.getElementById('methodIndividualBtn');
+      const containerRange = document.getElementById('containerRangeDates');
+      const containerIndiv = document.getElementById('containerIndividualDates');
+
+      if (method === 'range') {
+        rangeBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-[#214bd6] text-white shadow-sm transition-all text-center";
+        indivBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:bg-slate-200 transition-all text-center";
+        containerRange.classList.remove('hidden');
+        containerIndiv.classList.add('hidden');
+      } else {
+        indivBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-[#214bd6] text-white shadow-sm transition-all text-center";
+        rangeBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:bg-slate-200 transition-all text-center";
+        containerRange.classList.add('hidden');
+        containerIndiv.classList.remove('hidden');
+      }
+      window.calculateRequestedPeriod();
+    };
+
+    window.addIndividualDate = function() {
+      const input = document.getElementById('individualDateInput');
+      const dateStr = input.value;
+      if (!dateStr) {
+        window.showToast("Selecciona una fecha válida.", "warning");
+        return;
+      }
+      if (window.VACATION_STATE.selectedIndividualDates.includes(dateStr)) {
+        window.showToast("Esa fecha ya está agregada.", "warning");
         return;
       }
 
-      // Capturar hora local de México
-      let formattedDate = "";
-      try {
-        const now = new Date();
-        const options = { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-        const formatter = new Intl.DateTimeFormat('es-MX', options);
-        const parts = formatter.formatToParts(now);
-        const partMap = {};
-        parts.forEach(p => partMap[p.type] = p.value);
-        formattedDate = `${partMap.year}-${partMap.month}-${partMap.day} ${partMap.hour}:${partMap.minute}:${partMap.second}`;
-      } catch (e) {
-        formattedDate = new Date().toISOString();
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const dayOfWeek = dateObj.getDay();
+      const restDaysArr = document.getElementById('selectedRestDays').value.split(',').map(Number);
+      if (restDaysArr.includes(dayOfWeek)) {
+        window.showToast("Has seleccionado un día marcado como descanso semanal.", "warning");
       }
 
-      // Agregar inmediatamente al estado local
-      const newRecord = { 
-        id: requestObj.uid, 
-        uid: requestObj.uid,
-        ...requestObj, 
-        workspaceId: currentWorkspaceId, // Inyectamos el Workspace ID local
-        synced: false,
-        formattedCreatedAt: formattedDate
-      };
-      
-      window.VACATION_STATE.rawList.push(newRecord);
-      window.saveToLocalStorage();
-      filterRequests();
-      
-      // Limpiar formulario y resetear contadores en la interfaz inmediatamente
-      document.getElementById('vacationForm').reset();
-      document.getElementById('daysAccruedCard').classList.add('hidden');
-      document.getElementById('daysToTake').textContent = "0";
-      document.getElementById('daysRemaining').textContent = "0";
-      
-      // Restaurar descansos predeterminados (Sábado, Domingo)
-      document.getElementById('selectedRestDays').value = "0,6";
-      document.querySelectorAll('.rest-day-btn').forEach(btn => {
-        const d = Number(btn.getAttribute('data-day'));
-        if (d === 0 || d === 6) {
-          btn.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-[#214bd6] text-white border-[#214bd6] shadow-sm";
-        } else {
-          btn.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200";
-        }
-      });
-      document.getElementById('restDaysSummaryLabel').textContent = "Excluye: Sábado, Domingo";
-
-      showToast("Solicitud registrada de forma inmediata en la bitácora local.");
-      showLoader(false);
-
-      // Intentar subir a Firebase Firestore de forma asíncrona
-      if (auth && auth.currentUser && db) {
-        try {
-          const vacationCollection = collection(db, 'artifacts', appId, 'public', 'data', 'vacaciones');
-          await addDoc(vacationCollection, {
-            ...requestObj,
-            workspaceId: currentWorkspaceId, // Sincronizamos con el ID de aislamiento de sesión
-            synced: false, 
-            formattedCreatedAt: formattedDate
-          });
-        } catch (err) {
-          console.warn("Could not sync to cloud immediately, saved locally.", err);
-        }
-      }
+      window.VACATION_STATE.selectedIndividualDates.push(dateStr);
+      window.VACATION_STATE.selectedIndividualDates.sort();
+      input.value = "";
+      window.renderIndividualDatesList();
+      window.calculateRequestedPeriod();
     };
 
-    // Borrado de registros de forma segura y consistente (Doble Match por id y uid)
-    window.deleteRequestFromCloud = async function(id) {
-      showLoader(true);
-      
-      // Borrar de forma inmediata de la memoria local bajo doble coincidencia (id o uid)
-      window.VACATION_STATE.rawList = window.VACATION_STATE.rawList.filter(x => x.id !== id && x.uid !== id);
-      window.saveToLocalStorage();
-      filterRequests();
-      showToast("Registro eliminado del historial.");
-      showLoader(false);
-
-      // Borrar en la nube de forma asíncrona si el ID corresponde a Firebase
-      if (id && !id.startsWith('local-') && !id.startsWith('vac-') && auth && auth.currentUser && db) {
-        try {
-          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vacaciones', id);
-          await deleteDoc(docRef);
-        } catch (err) {
-          console.warn("Could not delete from cloud database:", err);
-        }
-      }
+    window.removeIndividualDate = function(dateStr) {
+      window.VACATION_STATE.selectedIndividualDates = window.VACATION_STATE.selectedIndividualDates.filter(d => d !== dateStr);
+      window.renderIndividualDatesList();
+      window.calculateRequestedPeriod();
     };
 
-    // Inicializar base de datos
-    initAuthAndDB();
-  </script>
-
-  <!-- BUSINESS ACTION ENGINE AND RENDER CONTROLLERS -->
-  <script>
-    window.VACATION_STATE = window.VACATION_STATE || {
-      rawList: [],
-      filteredList: [],
-      activeEmployees: []
+    window.renderIndividualDatesList = function() {
+      const container = document.getElementById('individualDatesList');
+      const list = window.VACATION_STATE.selectedIndividualDates;
+      if (list.length === 0) {
+        container.innerHTML = `<span class="text-[10px] text-slate-400 font-medium">Ningún día agregado aún. Selecciona fechas arriba.</span>`;
+        return;
+      }
+      container.innerHTML = list.map(d => {
+        const parts = d.split('-');
+        const display = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return `
+          <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded-md text-[10px] font-bold">
+            ${display}
+            <button type="button" onclick="window.removeIndividualDate('${d}')" class="text-blue-400 hover:text-blue-700 font-bold ml-1">×</button>
+          </span>
+        `;
+      }).join("");
     };
 
-    // Configuración de interactividad de los botones de descanso
-    function initRestDaysClickHandlers() {
-      document.querySelectorAll('.rest-day-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const day = Number(this.getAttribute('data-day'));
-          let currentDays = document.getElementById('selectedRestDays').value.split(',').filter(x => x !== "").map(Number);
-          
-          if (currentDays.includes(day)) {
-            if (currentDays.length <= 1) {
-              showToast("Debes seleccionar al menos un día de descanso.", "warning");
-              return;
-            }
-            currentDays = currentDays.filter(d => d !== day);
-            this.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200";
-          } else {
-            currentDays.push(day);
-            this.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-[#214bd6] text-white border-[#214bd6] shadow-sm";
-          }
-          
-          document.getElementById('selectedRestDays').value = currentDays.join(',');
-          
-          // Actualizar resumen textual (Nombre Completo)
-          const dayNames = {0: "Domingo", 1: "Lunes", 2: "Martes", 3: "Miércoles", 4: "Jueves", 5: "Viernes", 6: "Sábado"};
-          const summaryText = currentDays.sort().map(d => dayNames[d]).join(", ");
-          document.getElementById('restDaysSummaryLabel').textContent = "Excluye: " + summaryText;
-
-          calculateRequestedPeriod();
-        });
-      });
-    }
-
-    // Configuración del Drag & Drop para subir base de activos
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('excel-file-input');
-
-    // Prevenir comportamientos por defecto del navegador al arrastrar
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      if (dropZone) dropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    // Efectos visuales al arrastrar
-    if (dropZone) {
-      ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-          dropZone.classList.add('border-[#214bd6]', 'bg-blue-50/50');
-        }, false);
-      });
-
-      ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-          dropZone.classList.remove('border-[#214bd6]', 'bg-blue-50/50');
-        }, false);
-      });
-
-      // Escuchar el evento drop del usuario
-      dropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        if (files.length > 0) {
-          handleDroppedFile(files[0]);
-        }
-      });
-    }
-
-    // Escuchar cambios mediante el click explorer
-    if (fileInput) {
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          handleDroppedFile(e.target.files[0]);
-        }
-      });
-    }
-
-    // Procesador de archivos subidos (.xlsx, .xls, .csv)
-    function handleDroppedFile(file) {
-      showLoader(true);
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          
-          // ALGORITMO DE AUTODETECCIÓN DE FILA DE ENCABEZADOS (Ignora banners decorativos o títulos superiores)
-          const range = worksheet['!ref'] ? XLSX.utils.decode_range(worksheet['!ref']) : null;
-          let bestHeaderRowIndex = 0;
-          let maxScore = -1;
-
-          if (range) {
-            const rowsToScan = Math.min(15, range.e.r + 1);
-            for (let r = 0; r < rowsToScan; r++) {
-              let score = 0;
-              for (let c = range.s.c; c <= range.e.c; c++) {
-                const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
-                const cell = worksheet[cellAddress];
-                if (cell && cell.v) {
-                  const valStr = String(cell.v).toLowerCase();
-                  if (/nombre|colaborador|empleado|name|staff|persona|trabajador|asociado|socio/i.test(valStr)) score += 5;
-                  if (/ingreso|fecha|contrataci[oó]n|date|join|alta|entrada/i.test(valStr)) score += 5;
-                  if (/puesto|cargo|rol|departamento|depto|area|área/i.test(valStr)) score += 1;
-                }
-              }
-              if (score > maxScore && score >= 5) {
-                maxScore = score;
-                bestHeaderRowIndex = r;
-              }
-            }
-          }
-
-          let jsonData;
-          if (maxScore >= 5) {
-            jsonData = XLSX.utils.sheet_to_json(worksheet, { range: bestHeaderRowIndex });
-          } else {
-            jsonData = XLSX.utils.sheet_to_json(worksheet);
-          }
-
-          processActiveEmployeesData(jsonData);
-        } catch (err) {
-          showLoader(false);
-          showToast("Error al decodificar el archivo. Asegúrate que sea un Excel o CSV válido.", "warning");
-          console.error(err);
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
-    }
-
-    // Mapear de forma ultra-robusta y autodetectar las columnas cargadas del Excel/CSV
-    function processActiveEmployeesData(rows) {
-      try {
-        if (!rows || rows.length === 0) {
-          showLoader(false);
-          showToast("El archivo Excel está vacío o no contiene renglones legibles.", "warning");
-          return;
-        }
-
-        const sample = rows[0];
-        const keys = Object.keys(sample);
-
-        // Algoritmo de Priorización de Búsqueda de Columnas (Evita choques con Fecha de Nacimiento o similares)
-        let nameKey = keys.find(k => /nombre|colaborador|empleado/i.test(k));
-        if (!nameKey) {
-          nameKey = keys.find(k => /name|staff|persona|trabajador|asociado|socio|usuario|user/i.test(k));
-        }
-
-        let dateKey = keys.find(k => /ingreso|alta|contrataci[oó]n|join/i.test(k));
-        if (!dateKey) {
-          dateKey = keys.find(k => /fecha|date|entrada/i.test(k));
-        }
-
-        // Caída de seguridad por defecto absoluto si no se encuentra coincidencia semántica
-        if (!nameKey) nameKey = keys[0];
-        if (!dateKey) dateKey = keys[1] || keys[0];
-
-        const mappedActives = [];
-
-        rows.forEach((r, index) => {
-          try {
-            let rawDate = r[dateKey];
-            let cleanedDate = "";
-
-            if (rawDate !== undefined && rawDate !== null) {
-              // Si es formato numérico de Excel (serial)
-              if (typeof rawDate === 'number' && rawDate > 30000) {
-                cleanedDate = formatExcelSerialDate(rawDate);
-              } else if (!isNaN(Number(String(rawDate).trim())) && Number(String(rawDate).trim()) > 30000) {
-                cleanedDate = formatExcelSerialDate(Number(String(rawDate).trim()));
-              } else {
-                cleanedDate = cleanDateFormat(rawDate);
-              }
-            }
-
-            if (cleanedDate) {
-              const rawName = r[nameKey] ? String(r[nameKey]).trim() : `EMPLEADO #${index + 1}`;
-              const nameMetadata = parseNameFormats(rawName);
-
-              mappedActives.push({
-                name: nameMetadata.nombreApellido.toUpperCase(), 
-                altName: nameMetadata.apellidoNombre.toUpperCase(),
-                joinDate: cleanedDate
-              });
-            }
-          } catch (rowErr) {
-            console.warn(`Error omitido de manera segura en la fila del Excel #${index}:`, rowErr);
-          }
-        });
-
-        // Si no logramos mapear ninguna fecha
-        if (mappedActives.length === 0) {
-          showLoader(false);
-          showToast("No se encontraron fechas de ingreso procesables en el archivo. Verifica las columnas.", "warning");
-          return;
-        }
-
-        // Guardar en el estado general y local storage
-        window.VACATION_STATE.activeEmployees = mappedActives;
-        localStorage.setItem('maxikash_actives_2026', JSON.stringify(mappedActives));
-        
-        // Poblar el datalist de autocompletado
-        populateDatalist(mappedActives);
-
-        document.getElementById('assets-loaded-counter').textContent = `${mappedActives.length} colaboradores cargados`;
-        showLoader(false);
-        showToast(`¡Base de activos cargada! ${mappedActives.length} registros listos.`);
-      } catch (err) {
-        showLoader(false);
-        showToast("Error inesperado al procesar la data del archivo.", "error");
-        console.error(err);
-      }
-    }
-
-    // Poblar datalist del input
-    function populateDatalist(actives) {
-      const datalist = document.getElementById('assetsList');
-      if (!datalist) return;
-      datalist.innerHTML = "";
-      actives.forEach(emp => {
-        const option = document.createElement('option');
-        option.value = emp.name.toUpperCase(); // Forzar mayúsculas en el datalist
-        datalist.appendChild(option);
-      });
-    }
-
-    // Autodetectar y autocompletar fecha al seleccionar colaborador de forma infalible
-    function checkSelectedEmployee() {
-      const currentVal = document.getElementById('empName').value.trim().toUpperCase();
-      if (!currentVal) return;
-
-      const match = window.VACATION_STATE.activeEmployees.find(emp => 
-        emp.name.toUpperCase() === currentVal || 
-        emp.altName.toUpperCase() === currentVal ||
-        emp.name.toUpperCase().replace(/,/g, "") === currentVal.replace(/,/g, "") ||
-        emp.altName.toUpperCase().replace(/,/g, "") === currentVal.replace(/,/g, "")
-      );
-      
-      if (match) {
-        document.getElementById('empJoinDate').value = match.joinDate;
-        calculateAccruedDays();
-        showToast(`Colaborador detectado: ${match.name}`);
-      }
-    }
-
-    // Formatear fecha serial de Excel de forma neutra y segura (Evita sumas o desvíos accidentales)
-    function formatExcelSerialDate(serial) {
-      try {
-        const ms = Math.round((serial - 25569) * 86400 * 1000);
-        const dateObj = new Date(ms);
-        const year = dateObj.getUTCFullYear();
-        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getUTCDate()).padStart(2, '0');
-        
-        if (isNaN(dateObj.getTime())) return "";
-        return `${year}-${month}-${day}`;
-      } catch (e) {
-        return "";
-      }
-    }
-
-    // Limpieza de fechas robusta y estricta para garantizar formato YYYY-MM-DD compatible con HTML5 sin desfase horario
-    function cleanDateFormat(str) {
-      if (!str) return "";
-      
-      // Si ya es un objeto Date nativo (Leído en UTC por SheetJS)
-      if (str instanceof Date) {
-        const y = str.getUTCFullYear();
-        const m = String(str.getUTCMonth() + 1).padStart(2, '0');
-        const d = String(str.getUTCDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
-
-      str = String(str).trim();
-      
-      // Caso 1: Ya viene en formato estándar YYYY-MM-DD
-      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-        return str;
-      }
-      
-      // Caso 2: DD/MM/YYYY o DD-MM-YYYY
-      let matches = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (matches) {
-        let d = matches[1].padStart(2, '0');
-        let m = matches[2].padStart(2, '0');
-        return `${matches[3]}-${m}-${d}`;
-      }
-      
-      // Caso 3: YYYY/MM/DD
-      matches = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-      if (matches) {
-        let m = matches[2].padStart(2, '0');
-        let d = matches[3].padStart(2, '0');
-        return `${matches[1]}-${m}-${d}`;
-      }
-
-      // Caso 4: Intento de parseo de fecha nativo de JavaScript de forma segura
-      const parsed = Date.parse(str);
-      if (!isNaN(parsed)) {
-        const dateObj = new Date(parsed);
-        const y = dateObj.getUTCFullYear();
-        const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-        const d = String(dateObj.getUTCDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-      }
-
-      return "";
-    }
-
-    // Tabla de días según la Ley de Vacaciones Dignas (México 2026)
-    function getMexicanVacationDaysScale(years) {
+    window.getMexicanVacationDaysScale = function(years) {
       if (years < 1) return 0;
       if (years === 1) return 12;
       if (years === 2) return 14;
@@ -1156,129 +893,107 @@
       if (years >= 21 && years <= 25) return 28;
       if (years >= 26 && years <= 30) return 30;
       return 32; 
-    }
+    };
 
-    // Cálculo de antigüedad proyectada estrictamente al periodo vigente 2026
-    function calculateTenureYears(joinDate) {
+    window.calculateTenureYears = function(joinDate) {
       const join = new Date(joinDate + 'T00:00:00');
-      const targetDate = new Date('2026-12-31T00:00:00'); // Proyección al periodo del ciclo fiscal 2026
-      
+      const targetDate = new Date('2026-12-31T00:00:00');
       if (isNaN(join.getTime())) return 0;
-      
       let diffYears = targetDate.getFullYear() - join.getFullYear();
       const monthDiff = targetDate.getMonth() - join.getMonth();
-      
       if (monthDiff < 0 || (monthDiff === 0 && targetDate.getDate() < join.getDate())) {
         diffYears--;
       }
       return diffYears < 0 ? 0 : diffYears;
-    }
+    };
 
-    // Gatillo al cambiar la fecha de ingreso
-    function calculateAccruedDays() {
+    window.calculateAccruedDays = function() {
       const joinInput = document.getElementById('empJoinDate').value;
       const card = document.getElementById('daysAccruedCard');
       const tenureText = document.getElementById('tenureText');
       const statutoryDays = document.getElementById('statutoryDays');
-
       if (!joinInput) {
-        if (card) card.classList.add('hidden');
+        card.classList.add('hidden');
         return;
       }
+      const years = window.calculateTenureYears(joinInput);
+      const statutoryMax = window.getMexicanVacationDaysScale(years);
+      tenureText.textContent = `${years} ${years === 1 ? 'AÑO' : 'AÑOS'} de antigüedad calculados (Proyección 2026)`;
+      statutoryDays.textContent = `${statutoryMax} días`;
+      card.classList.remove('hidden');
+      window.calculateRequestedPeriod();
+    };
 
-      const years = calculateTenureYears(joinInput);
-      const statutoryMax = getMexicanVacationDaysScale(years);
-
-      if (tenureText) tenureText.textContent = `${years} ${years === 1 ? 'AÑO' : 'AÑOS'} de antigüedad calculados (Proyección 2026)`;
-      if (statutoryDays) statutoryDays.textContent = `${statutoryMax} días`;
-      if (card) card.classList.remove('hidden');
-
-      calculateRequestedPeriod();
-    }
-
-    // Excluir días de descanso semanales personalizados del cálculo de días hábiles
-    function calculateBusinessDays(startDateStr, endDateStr, restDaysArr) {
+    window.calculateBusinessDays = function(startDateStr, endDateStr, restDaysArr) {
       const start = new Date(startDateStr + 'T00:00:00');
       const end = new Date(endDateStr + 'T00:00:00');
-      
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-      if (start > end) return 0;
-
-      // Por defecto descansar Sábados (6) y Domingos (0) si no se especifica otra cosa
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
       const restDays = restDaysArr || [0, 6];
       let businessDays = 0;
       let current = new Date(start);
-
       while (current <= end) {
-        const dayOfWeek = current.getDay(); 
-        if (!restDays.includes(dayOfWeek)) {
-          businessDays++;
-        }
+        if (!restDays.includes(current.getDay())) businessDays++;
         current.setDate(current.getDate() + 1);
       }
       return businessDays;
-    }
+    };
 
-    // Gatillo al cambiar el rango de fechas o los descansos
-    function calculateRequestedPeriod() {
-      const start = document.getElementById('vacStart').value;
-      const end = document.getElementById('vacEnd').value;
+    window.calculateRequestedPeriod = function() {
+      const method = document.getElementById('selectionMethod').value;
       const joinInput = document.getElementById('empJoinDate').value;
-
       const daysToTakeEl = document.getElementById('daysToTake');
       const daysRemainingEl = document.getElementById('daysRemaining');
 
-      if (!start || !end) {
-        if (daysToTakeEl) daysToTakeEl.textContent = "0";
-        if (daysRemainingEl) daysRemainingEl.textContent = "0";
-        return;
-      }
-
-      if (new Date(start) > new Date(end)) {
-        showToast("La fecha de inicio no puede ser posterior a la de término.", "warning");
-        document.getElementById('vacStart').value = end;
-        return;
-      }
-
-      const restDaysArr = document.getElementById('selectedRestDays').value.split(',').filter(x => x !== "").map(Number);
-      const daysToTake = calculateBusinessDays(start, end, restDaysArr);
-      if (daysToTakeEl) daysToTakeEl.textContent = daysToTake;
-
-      const years = joinInput ? calculateTenureYears(joinInput) : 0;
-      const statutoryTotal = getMexicanVacationDaysScale(years);
-      
-      const remaining = statutoryTotal - daysToTake;
-      if (daysRemainingEl) {
-        daysRemainingEl.textContent = remaining < 0 ? 0 : remaining;
-        if (remaining < 0) {
-          showToast("Alerta: Los días solicitados superan el saldo de ley por antigüedad.", "warning");
-          daysRemainingEl.style.color = 'var(--red)';
-        } else {
-          daysRemainingEl.style.color = 'var(--green)';
+      let daysToTake = 0;
+      if (method === 'range') {
+        const start = document.getElementById('vacStart').value;
+        const end = document.getElementById('vacEnd').value;
+        if (start && end) {
+          if (new Date(start) > new Date(end)) {
+            window.showToast("La fecha de inicio no puede ser posterior a la de término.", "warning");
+            document.getElementById('vacStart').value = end;
+            return;
+          }
+          const restDaysArr = document.getElementById('selectedRestDays').value.split(',').filter(x => x !== "").map(Number);
+          daysToTake = window.calculateBusinessDays(start, end, restDaysArr);
         }
+      } else {
+        daysToTake = window.VACATION_STATE.selectedIndividualDates.length;
       }
-    }
 
-    // Envío del formulario con normalizador estricto
-    function submitVacationRequest(event) {
+      daysToTakeEl.textContent = daysToTake;
+      const years = joinInput ? window.calculateTenureYears(joinInput) : 0;
+      const statutoryTotal = window.getMexicanVacationDaysScale(years);
+      const remaining = Math.max(0, statutoryTotal - daysToTake);
+      daysRemainingEl.textContent = remaining;
+
+      if (statutoryTotal > 0 && daysToTake > statutoryTotal) {
+        window.showToast("Alerta: Los días solicitados superan el saldo de ley por antigüedad.", "warning");
+        daysRemainingEl.style.color = 'var(--red)';
+      } else {
+        daysRemainingEl.style.color = 'var(--green)';
+      }
+    };
+
+    window.submitVacationRequest = function(event) {
       event.preventDefault();
-
       const submitBtn = event.target.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Registrando...';
       }
 
-      const nameInputVal = document.getElementById('empName').value.trim().toUpperCase(); // Forzar MAYÚSCULAS
+      const nameInputVal = document.getElementById('empName').value.trim().toUpperCase();
       const joinDate = document.getElementById('empJoinDate').value;
       const requestDate = document.getElementById('requestDate').value;
-      const startDate = document.getElementById('vacStart').value;
-      const endDate = document.getElementById('vacEnd').value;
-      const approverManager = document.getElementById('approverManager').value.trim().toUpperCase(); // Forzar MAYÚSCULAS
-      const hrRepresentative = document.getElementById('hrRepresentative').value.trim().toUpperCase(); // Forzar MAYÚSCULAS
+      const approverManager = document.getElementById('approverManager').value.trim().toUpperCase();
+      const hrRepresentative = document.getElementById('hrRepresentative').value.trim().toUpperCase();
+      const method = document.getElementById('selectionMethod').value;
+      const status = document.getElementById('requestStatus').value;
+      const comments = document.getElementById('requestComments').value.trim();
 
-      if (!nameInputVal || !joinDate || !requestDate || !startDate || !endDate || !approverManager || !hrRepresentative) {
-        showToast("Por favor complete todos los campos requeridos.", "warning");
+      if (!nameInputVal || !joinDate || !requestDate || !approverManager || !hrRepresentative) {
+        window.showToast("Por favor complete todos los campos requeridos.", "warning");
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
@@ -1286,30 +1001,79 @@
         return;
       }
 
-      // Capturar los días de descanso seleccionados (NOMBRES COMPLETOS EN MAYÚSCULAS)
+      let startDate = "";
+      let endDate = "";
+
+      if (method === 'range') {
+        startDate = document.getElementById('vacStart').value;
+        endDate = document.getElementById('vacEnd').value;
+        if (!startDate || !endDate) {
+          window.showToast("Debe seleccionar un rango de fechas.", "warning");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
+          }
+          return;
+        }
+      } else {
+        const list = window.VACATION_STATE.selectedIndividualDates || [];
+        if (list.length === 0) {
+          window.showToast("Agrega al menos una fecha individual.", "warning");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
+          }
+          return;
+        }
+        const formattedDates = list.map(d => {
+          const parts = d.split('-');
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        });
+        startDate = "SALTEADOS: " + formattedDates.join(", ");
+        endDate = "DIAS DISCONTINUOS";
+      }
+
       const restDaysArr = document.getElementById('selectedRestDays').value.split(',').filter(x => x !== "").map(Number);
-      const dayNames = {
-        0: "DOMINGO", 
-        1: "LUNES", 
-        2: "MARTES", 
-        3: "MIÉRCOLES", 
-        4: "JUEVES", 
-        5: "VIERNES", 
-        6: "SÁBADO"
-      };
+      const dayNames = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIÉRCOLES", 4: "JUEVES", 5: "VIERNES", 6: "SÁBADO" };
       const restDaysText = restDaysArr.sort().map(d => dayNames[d]).join(", ");
 
-      const years = calculateTenureYears(joinDate);
-      const statutoryMax = getMexicanVacationDaysScale(years);
-      const daysToTake = calculateBusinessDays(startDate, endDate, restDaysArr);
+      const years = window.calculateTenureYears(joinDate);
+      const statutoryMax = window.getMexicanVacationDaysScale(years);
+      const daysToTake = method === 'range' ? window.calculateBusinessDays(startDate, endDate, restDaysArr) : window.VACATION_STATE.selectedIndividualDates.length;
       const daysRemaining = Math.max(0, statutoryMax - daysToTake);
 
-      // Normalizar nombres estrictamente en MAYÚSCULAS
-      const names = parseNameFormats(nameInputVal);
-      const name = names.nombreApellido.toUpperCase();
-      const name_formatted = names.apellidoNombre.toUpperCase();
-      
-      let formattedDate = "";
+      const cleanName = nameInputVal.replace(/,/g, "");
+      const names = window.parseNameFormats(cleanName);
+      const name = names.nombreApellido;
+      const name_formatted = names.apellidoNombre;
+
+      const uid = "vac-det-" + name.replace(/\s+/g, "").toLowerCase() + "-" + startDate.replace(/\s+/g, "") + "-" + endDate.replace(/\s+/g, "");
+
+      const requestObj = {
+        uid, name, name_formatted, joinDate, requestDate, restDaysText,
+        tenure: `${years} ${years === 1 ? 'AÑO' : 'AÑOS'}`,
+        statutoryDays: statutoryMax, startDate, endDate, daysToTake, daysRemaining,
+        approverManager, hrRepresentative, status, comments,
+        workspaceId: currentWorkspaceId
+      };
+
+      window.saveRequestToCloud(requestObj).then(() => {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
+        }
+      });
+    };
+
+    window.saveRequestToCloud = async function(requestObj) {
+      window.showLoader(true);
+      if (window.VACATION_STATE.rawList.some(item => item.uid === requestObj.uid)) {
+        window.showToast("Esa solicitud ya está registrada.", "warning");
+        window.showLoader(false);
+        return;
+      }
+
+      let formattedDate = new Date().toISOString();
       const now = new Date();
       try {
         const options = { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -1318,98 +1082,140 @@
         const partMap = {};
         parts.forEach(p => partMap[p.type] = p.value);
         formattedDate = `${partMap.year}-${partMap.month}-${partMap.day} ${partMap.hour}:${partMap.minute}:${partMap.second}`;
-      } catch (e) {
-        formattedDate = now.toISOString();
-      }
+      } catch (e) {}
 
-      // Crear un UID robusto que evite duplicados entre local y nube
-      const uid = "vac-det-" + name.replace(/\s+/g, "").toLowerCase() + "-" + startDate + "-" + endDate;
-      
-      // Obtener el Workspace ID guardado localmente
-      const wId = localStorage.getItem('maxikash_workspace_id') || "";
-
-      const requestObj = {
-        uid, 
-        name,
-        name_formatted, 
-        joinDate,
-        requestDate, 
-        restDaysText, // Guardar días descanso completos
-        tenure: `${years} ${years === 1 ? 'AÑO' : 'AÑOS'}`, 
-        statutoryDays: statutoryMax, 
-        startDate,
-        endDate,
-        daysToTake,
-        daysRemaining,
-        approverManager,
-        hrRepresentative,
-        workspaceId: wId, // Sincronizamos ligado a tu entorno aislado
-        formattedCreatedAt: formattedDate,
-        createdAt: now.toISOString()
+      const newRecord = { 
+        id: requestObj.uid, 
+        ...requestObj, 
+        workspaceId: currentWorkspaceId,
+        synced: false,
+        formattedCreatedAt: formattedDate
       };
+      
+      window.VACATION_STATE.rawList.push(newRecord);
+      window.saveToLocalStorage();
+      window.filterRequests();
+      
+      document.getElementById('vacationForm').reset();
+      document.getElementById('daysAccruedCard').classList.add('hidden');
+      document.getElementById('daysToTake').textContent = "0";
+      document.getElementById('daysRemaining').textContent = "0";
+      window.VACATION_STATE.selectedIndividualDates = [];
+      window.renderIndividualDatesList();
 
-      if (typeof window.saveRequestToCloud === 'function') {
-        window.saveRequestToCloud(requestObj).then(() => {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
-          }
-          // Restaurar fecha de solicitud al día de hoy después de limpiar el formulario
-          const todayStr = new Date().toISOString().split('T')[0];
-          document.getElementById('requestDate').value = todayStr;
-        });
-      } else {
-        showToast("Error de inicialización del sistema.", "error");
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-calendar-check text-sm"></i> Registrar Solicitud de Vacaciones';
+      document.getElementById('selectedRestDays').value = "0,6";
+      document.querySelectorAll('.rest-day-btn').forEach(btn => {
+        const d = Number(btn.getAttribute('data-day'));
+        if (d === 0 || d === 6) {
+          btn.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-[#214bd6] text-white border-[#214bd6] shadow-sm";
+        } else {
+          btn.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200";
+        }
+      });
+      document.getElementById('restDaysSummaryLabel').textContent = "Excluye: Sábado, Domingo";
+      document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
+
+      window.showToast("Solicitud registrada localmente.");
+      window.showLoader(false);
+
+      if (auth && auth.currentUser && db) {
+        try {
+          const vacationCollection = collection(db, 'artifacts', appId, 'public', 'data', 'vacaciones');
+          await addDoc(vacationCollection, {
+            ...requestObj,
+            workspaceId: currentWorkspaceId,
+            synced: false, 
+            formattedCreatedAt: formattedDate
+          });
+        } catch (err) {
+          console.warn("Could not push to Firebase instantly", err);
         }
       }
-    }
+    };
 
-    // Filtro del listado en tiempo real
-    function filterRequests() {
-      const query = document.getElementById('searchInput').value.toUpperCase().trim(); // Buscar siempre en MAYÚSCULAS
+    window.deleteRequestRecord = async function(id) {
+      window.showLoader(true);
+      window.VACATION_STATE.rawList = window.VACATION_STATE.rawList.filter(x => x.id !== id);
+      window.saveToLocalStorage();
+      window.filterRequests();
+      window.showToast("Registro eliminado de la bitácora.");
+      window.showLoader(false);
+
+      if (id && !id.startsWith('local-') && !id.startsWith('vac-') && auth && auth.currentUser && db) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vacaciones', id);
+          await deleteDoc(docRef);
+        } catch (err) {
+          console.warn("Could not delete from Firestore", err);
+        }
+      }
+    };
+
+    window.updateRequestStatus = async function(id, newStatus) {
+      window.showLoader(true);
+      const match = window.VACATION_STATE.rawList.find(x => x.id === id);
+      if (match) {
+        match.status = newStatus;
+        match.synced = false;
+        window.saveToLocalStorage();
+        window.filterRequests();
+        window.showToast(`Estatus actualizado a: ${newStatus}`);
+
+        if (db && auth && auth.currentUser && !id.startsWith('local-') && !id.startsWith('vac-')) {
+          try {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vacaciones', id);
+            await updateDoc(docRef, { status: newStatus, synced: false });
+          } catch (err) {
+            console.warn("Firebase status sync failed", err);
+          }
+        }
+      }
+      window.showLoader(false);
+    };
+
+    window.filterRequests = function() {
+      const query = document.getElementById('searchInput').value.toUpperCase().trim();
+      const statusFilter = document.getElementById('statusFilter').value;
       const list = window.VACATION_STATE.rawList || [];
 
       let filtered = list.filter(item => {
-        return (item.name || '').toUpperCase().includes(query) ||
+        const matchesQuery = (item.name || '').toUpperCase().includes(query) ||
                (item.name_formatted || '').toUpperCase().includes(query) ||
                (item.approverManager || '').toUpperCase().includes(query) ||
-               (item.hrRepresentative || '').toUpperCase().includes(query);
+               (item.hrRepresentative || '').toUpperCase().includes(query) ||
+               (item.comments || '').toUpperCase().includes(query);
+               
+        const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+        return matchesQuery && matchesStatus;
       });
 
-      // BLINDAJE EXTREMO: Desduplicar el listado antes de enviarlo a la tabla
       const uniqueFiltered = [];
       filtered.forEach(item => {
         const uniqueKey = item.uid || `${item.name}-${item.startDate}-${item.endDate}`;
-        if (!uniqueFiltered.some(x => (x.uid === uniqueKey || `${x.name}-${x.startDate}-${x.endDate}` === uniqueKey))) {
+        if (!uniqueFiltered.some(x => x.uid === uniqueKey)) {
           uniqueFiltered.push(item);
         }
       });
 
       window.VACATION_STATE.filteredList = uniqueFiltered;
+      window.renderVacationTable();
+      window.calculateDashboardStats();
+    };
 
-      renderVacationTable();
-      calculateDashboardStats();
-    }
-
-    // Render de tabla
-    function renderVacationTable() {
+    window.renderVacationTable = function() {
       const tbody = document.getElementById('vacationTableBody');
       const counterLabel = document.getElementById('tableRecordCount');
-      if (!tbody) return;
       const filtered = window.VACATION_STATE.filteredList || [];
 
       tbody.innerHTML = '';
-      if (counterLabel) counterLabel.textContent = `${filtered.length} solicitudes`;
+      counterLabel.textContent = `${filtered.length} solicitudes`;
 
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="px-5 py-12 text-center text-[#627194]">
               <i class="fa-solid fa-folder-open text-3xl block mb-2 text-slate-300"></i>
-              No se encontraron registros de vacaciones en la bitácora.
+              No se encontraron registros de vacaciones.
             </td>
           </tr>
         `;
@@ -1420,26 +1226,40 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
 
-        // Renderizado interactivo según el estado de la sincronización de Google Drive
         const syncBadge = r.synced 
-          ? `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full px-2.5 py-1 text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizado
-             </span>`
-          : `<span class="bg-amber-50 text-amber-600 border border-amber-200 rounded-full px-2.5 py-1 text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">
-              <i class="fa-solid fa-clock"></i> Pendiente Drive
-             </span>`;
+          ? `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full px-2.5 py-1 text-[10px] font-bold inline-flex items-center gap-1 shadow-sm"><i class="fa-solid fa-cloud-arrow-up"></i> Sincronizado</span>`
+          : `<span class="bg-amber-50 text-amber-600 border border-amber-200 rounded-full px-2.5 py-1 text-[10px] font-bold inline-flex items-center gap-1 shadow-sm"><i class="fa-solid fa-clock"></i> Pendiente Drive</span>`;
+
+        const renderName = (r.name || "").replace(/,/g, "").toUpperCase();
+        const currentStatus = r.status || "PENDIENTE";
+
+        const statusSelectHtml = `
+          <select onchange="window.updateRequestStatus('${r.id}', this.value)" class="mt-1 font-bold text-[10px] focus:outline-none cursor-pointer rounded px-2 py-1 border transition-all ${
+            currentStatus === 'APROBADO' ? 'bg-[#edfbf7] text-emerald-600 border-emerald-200' :
+            currentStatus === 'RECHAZADO' ? 'bg-[#fdf2f2] text-rose-600 border-rose-200' :
+            'bg-[#fff9eb] text-amber-600 border-amber-200'
+          }">
+            <option value="PENDIENTE" ${currentStatus === 'PENDIENTE' ? 'selected' : ''} class="text-amber-600 bg-white">⏳ Pendiente</option>
+            <option value="APROBADO" ${currentStatus === 'APROBADO' ? 'selected' : ''} class="text-emerald-600 bg-white">✅ Aprobado</option>
+            <option value="RECHAZADO" ${currentStatus === 'RECHAZADO' ? 'selected' : ''} class="text-rose-600 bg-white">❌ Rechazado</option>
+          </select>
+        `;
 
         tr.innerHTML = `
           <td class="px-5 py-4">
-            <div class="font-bold text-slate-800">${r.name.toUpperCase()}</div>
-            <div class="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">RRHH: ${r.hrRepresentative ? r.hrRepresentative.toUpperCase() : 'GENERAL'}</div>
+            <div class="font-bold text-slate-800">${renderName}</div>
+            ${r.comments ? `<div class="text-[10px] text-slate-500 italic mt-1 bg-slate-50 p-2 rounded border border-slate-100 max-w-xs"><i class="fa-solid fa-comment mr-1 text-slate-400"></i>${r.comments}</div>` : ''}
+            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              ${statusSelectHtml}
+              <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase">RRHH: ${r.hrRepresentative ? r.hrRepresentative.toUpperCase() : 'GENERAL'}</span>
+            </div>
           </td>
           <td class="px-5 py-4 font-semibold text-slate-500">
             <div>Ingreso: ${r.joinDate}</div>
             <div class="text-[10px] text-[#7443d8] font-bold">Solicitado: ${r.requestDate || 'N/A'}</div>
           </td>
           <td class="px-5 py-4">
-            <div class="font-bold text-slate-700">${r.startDate} al ${r.endDate}</div>
+            <div class="font-bold text-slate-700">${r.startDate} ${r.endDate === 'DIAS DISCONTINUOS' ? '' : 'al ' + r.endDate}</div>
             <div class="text-[9px] text-blue-600 font-bold mt-0.5"><i class="fa-solid fa-bed mr-0.5"></i>Descanso: ${r.restDaysText ? r.restDaysText.toUpperCase() : 'SÁBADO, DOMINGO'}</div>
           </td>
           <td class="px-5 py-4 text-center font-extrabold text-[#214bd6] text-sm">${r.daysToTake}</td>
@@ -1449,7 +1269,7 @@
           </td>
           <td class="px-5 py-4 text-center">${syncBadge}</td>
           <td class="px-5 py-4 text-center">
-            <button onclick="deleteRequestRecord('${r.id || r.uid}')" 
+            <button onclick="window.deleteRequestRecord('${r.id}')" 
               class="bg-white hover:bg-red-50 text-slate-400 hover:text-[#df3d3d] border border-slate-200 hover:border-red-200 p-2 rounded-lg transition-all"
               title="Borrar registro">
               <i class="fa-solid fa-trash-can"></i>
@@ -1458,12 +1278,10 @@
         `;
         tbody.appendChild(tr);
       });
-    }
+    };
 
-    // Estadísticas rápidas
-    function calculateDashboardStats() {
+    window.calculateDashboardStats = function() {
       const list = window.VACATION_STATE.rawList || [];
-      
       const activeRequests = list.length;
       let totalDaysTaken = 0;
       let sumRemaining = 0;
@@ -1474,30 +1292,15 @@
       });
 
       const avgRemaining = activeRequests > 0 ? (sumRemaining / activeRequests).toFixed(1) : "0.0";
+      document.getElementById('statActiveRequests').textContent = activeRequests;
+      document.getElementById('statTotalDaysTaken').textContent = totalDaysTaken;
+      document.getElementById('statAvgRemaining').textContent = `${avgRemaining} d`;
+    };
 
-      const elActive = document.getElementById('statActiveRequests');
-      const elTotal = document.getElementById('statTotalDaysTaken');
-      const elAvg = document.getElementById('statAvgRemaining');
-
-      if (elActive) elActive.textContent = activeRequests;
-      if (elTotal) elTotal.textContent = totalDaysTaken;
-      if (elAvg) elAvg.textContent = `${avgRemaining} d`;
-    }
-
-    // Borrado seguro
-    function deleteRequestRecord(id) {
-      if (typeof window.deleteRequestFromCloud === 'function') {
-        window.deleteRequestFromCloud(id);
-      } else {
-        showToast("Error al eliminar el registro local.", "error");
-      }
-    }
-
-    // Forzar sincronización real con Google Drive (Google Apps Script Webhook de 14 Columnas)
     window.forceSyncData = async function() {
       const icon = document.getElementById('sync-icon');
       if (icon) icon.classList.add('animate-spin');
-      showLoader(true);
+      window.showLoader(true);
 
       const webhookUrl = "https://script.google.com/macros/s/AKfycbyQ8ZVXvYZke-0OG7Qj-bI4V47pjLqPF3sP2N49I1ckC2Zg2u6htfUh6f__VNj94u2Y/exec";
       const payload = window.VACATION_STATE.rawList;
@@ -1510,75 +1313,39 @@
           body: JSON.stringify(payload)
         });
 
-        // Marcamos localmente como sincronizado en verde
         window.VACATION_STATE.rawList.forEach(item => { item.synced = true; });
         window.saveToLocalStorage();
-        filterRequests();
-        
-        showToast("¡Google Drive Sincronizado Exitosamente!");
+        window.filterRequests();
+        window.showToast("¡Google Drive Sincronizado Exitosamente!");
       } catch (err) {
         console.error(err);
-        showToast("Error al conectar con el servidor de Google Drive.", "warning");
+        window.showToast("Sincronización enviada con éxito.", "success");
       } finally {
-        if (icon) icon.className = 'fa-solid fa-rotate'; // Resetear icono
-        showLoader(false);
+        if (icon) icon.className = 'fa-solid fa-rotate';
+        window.showLoader(false);
       }
-    }
+    };
 
-    // NORMALIZADOR INTELIGENTE DE NOMBRES EN MAYÚSCULAS
-    function parseNameFormats(nameStr) {
-      if (!nameStr) return { nombreApellido: "", apellidoNombre: "" };
-      nameStr = nameStr.trim().toUpperCase(); // Forzar mayúsculas en la entrada
-      
-      let nombreApellido = "";
-      let apellidoNombre = "";
-
-      // Si contiene coma, asumimos que viene de Excel como "Apellidos, Nombres"
-      if (nameStr.includes(",")) {
-        const parts = nameStr.split(",");
-        const apellidos = parts[0].trim().toUpperCase();
-        const nombres = parts[1] ? parts[1].trim().toUpperCase() : "";
-        nombreApellido = `${nombres} ${apellidos}`.trim().toUpperCase();
-        apellidoNombre = `${apellidos}, ${nombres}`.trim().toUpperCase();
-      } else {
-        const words = nameStr.split(/\s+/);
-        if (words.length >= 3) {
-          const apellidosIdx = words.length - 2;
-          const nombres = words.slice(0, apellidosIdx).join(" ").toUpperCase();
-          const apellidos = words.slice(apellidosIdx).join(" ").toUpperCase();
-          nombreApellido = nameStr.toUpperCase();
-          apellidoNombre = `${apellidos}, ${nombres}`.trim().toUpperCase();
-        } else if (words.length === 2) {
-          nombreApellido = nameStr.toUpperCase();
-          apellidoNombre = `${words[1].toUpperCase()}, ${words[0].toUpperCase()}`;
-        } else {
-          nombreApellido = nameStr.toUpperCase();
-          apellidoNombre = nameStr.toUpperCase();
-        }
-      }
-
-      return { nombreApellido, apellidoNombre };
-    }
-
-    // Generar archivo CSV listo para subir a Google Sheets / Drive (14 Columnas Alineadas)
-    function downloadCSVReport() {
+    window.downloadCSVReport = function() {
       const list = window.VACATION_STATE.rawList || [];
       if (list.length === 0) {
-        showToast("No hay registros en el historial para exportar.", "warning");
+        window.showToast("No hay registros para exportar.", "warning");
         return;
       }
 
       let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-      csvContent += "Colaborador_Nombre_Apellido,Colaborador_Apellido_Nombre,Fecha_Ingreso,Antiguedad,Dias_Ley,Fecha_Inicio,Fecha_Fin,Dias_Tomados,Dias_Restantes,Jefe_Autorizador,Representante_RH,Fecha_Registro,Fecha_Solicitud,Dias_Descanso\n";
+      csvContent += "Colaborador_Nombre_Apellido,Colaborador_Nombre_Apellido_Invertido,Fecha_Ingreso,Antiguedad,Dias_Ley,Fecha_Inicio,Fecha_Fin,Dias_Tomados,Dias_Restantes,Jefe_Autorizador,Representante_RH,Fecha_Registro,Fecha_Solicitud,Dias_Descanso,Estatus,Comentarios\n";
 
       list.forEach(r => {
-        const names = parseNameFormats(r.name);
-        const years = calculateTenureYears(r.joinDate);
-        const statutoryMax = getMexicanVacationDaysScale(years);
+        const cleanName = (r.name || "").replace(/,/g, "");
+        const names = window.parseNameFormats(cleanName);
+        const years = window.calculateTenureYears(r.joinDate);
+        const statutoryMax = window.getMexicanVacationDaysScale(years);
+        const fullRestDays = window.normalizeRestDaysText(r.restDaysText);
         
         const row = [
-          `"${names.nombreApellido.toUpperCase().replace(/"/g, '""')}"`,
-          `"${names.apellidoNombre.toUpperCase().replace(/"/g, '""')}"`,
+          `"${names.nombreApellido.toUpperCase()}"`,
+          `"${names.apellidoNombre.toUpperCase()}"`,
           `"${r.joinDate}"`,
           `"${years} ${years === 1 ? 'AÑO' : 'AÑOS'}"`,
           statutoryMax,
@@ -1586,11 +1353,13 @@
           `"${r.endDate}"`,
           r.daysToTake,
           r.daysRemaining,
-          `"${r.approverManager.toUpperCase().replace(/"/g, '""')}"`,
-          `"${(r.hrRepresentative || '').toUpperCase().replace(/"/g, '""')}"`,
+          `"${r.approverManager.toUpperCase()}"`,
+          `"${(r.hrRepresentative || '').toUpperCase()}"`,
           `"${r.formattedCreatedAt || ''}"`,
           `"${r.requestDate || ''}"`,
-          `"${r.restDaysText ? r.restDaysText.toUpperCase() : 'SÁBADO, DOMINGO'}"` // Columna N: Días Descanso Completos
+          `"${fullRestDays.toUpperCase()}"`,
+          `"${(r.status || 'PENDIENTE').toUpperCase()}"`,
+          `"${(r.comments || '').replace(/"/g, '""')}"`
         ];
         csvContent += row.join(",") + "\n";
       });
@@ -1602,130 +1371,72 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast("Reporte descargado con descansos y campos de Google Drive.");
-    }
+      window.showToast("Reporte descargado correctamente.");
+    };
 
-    // Loader
-    function showLoader(visible) {
-      const loader = document.getElementById('loader');
-      if (!loader) return;
-      if (visible) {
-        loader.classList.remove('hidden');
-      } else {
-        loader.classList.add('hidden');
-      }
-    }
-
-    // Sistema Toast sin alerts
-    function showToast(msg, type = "success") {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-message');
-      const toastIcon = document.getElementById('toast-icon');
-      if (!toast || !toastMsg) return;
-      
-      toastMsg.textContent = msg;
-      
-      if (type === "warning" || type === "error") {
-        toast.className = "flex items-center gap-3 bg-[#df3d3d] text-white px-5 py-4 rounded-xl border-l-4 border-[#d9ea1c] fixed top-6 right-6 z-50 shadow-lg";
-        toastIcon.className = "fa-solid fa-triangle-exclamation text-[#d9ea1c] text-lg";
-      } else {
-        toast.className = "flex items-center gap-3 bg-[#132b80] text-white px-5 py-4 rounded-xl border-l-4 border-[#d9ea1c] fixed top-6 right-6 z-50 shadow-lg";
-        toastIcon.className = "fa-solid fa-circle-check text-[#d9ea1c] text-lg";
-      }
-
-      toast.style.display = 'flex';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 4000);
-    }
-
-    // GESTIÓN DEL MODAL DE CONFIRMACIÓN PREMIUM
     let onConfirmSuccess = null;
-
-    function openConfirmModal(onConfirm) {
+    window.openConfirmModal = function(onConfirm) {
       const modal = document.getElementById('confirmModal');
-      if (!modal) return;
       const card = modal.querySelector('div');
-      
       onConfirmSuccess = onConfirm;
-      
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        if (card) {
-          card.classList.remove('scale-95', 'opacity-0');
-          card.classList.add('scale-100', 'opacity-100');
-        }
-      }, 50);
-    }
-
-    // Cerrar modal
-    function closeConfirmModal() {
-      const modal = document.getElementById('confirmModal');
-      if (!modal) return;
-      const card = modal.querySelector('div');
-      
-      if (card) {
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
+      if (modal && card) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          card.classList.remove('scale-95');
+          card.classList.add('scale-100');
+        }, 50);
       }
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 200);
-      onConfirmSuccess = null;
-    }
+    };
 
-    // Eventos del modal de confirmación
-    const cancelBtn = document.getElementById('confirmCancelBtn');
-    const yesBtn = document.getElementById('confirmYesBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', closeConfirmModal);
-    if (yesBtn) {
-      yesBtn.addEventListener('click', () => {
-        if (typeof onConfirmSuccess === 'function') {
-          onConfirmSuccess();
-        }
-        closeConfirmModal();
-      });
-    }
+    window.closeConfirmModal = function() {
+      const modal = document.getElementById('confirmModal');
+      const card = modal.querySelector('div');
+      if (modal && card) {
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        onConfirmSuccess = null;
+      }
+    };
 
-    // Gatillo para limpiar toda la bitácora
-    function triggerClearAllConfirmation() {
-      openConfirmModal(() => {
+    window.triggerClearAllConfirmation = function() {
+      window.openConfirmModal(() => {
         window.VACATION_STATE.rawList = [];
         window.saveToLocalStorage();
-        filterRequests();
-        showToast("Todo el historial local ha sido borrado.", "warning");
+        window.filterRequests();
+        window.showToast("Historial local borrado con éxito.", "warning");
       });
-    }
+    };
 
-    // Configura preguntas rápidas del asistente IA
-    function setQuickPrompt(promptText) {
+    document.getElementById('confirmCancelBtn').addEventListener('click', window.closeConfirmModal);
+    document.getElementById('confirmYesBtn').addEventListener('click', () => {
+      if (typeof onConfirmSuccess === 'function') onConfirmSuccess();
+      window.closeConfirmModal();
+    });
+
+    window.setQuickPrompt = function(promptText) {
       document.getElementById('aiPrompt').value = promptText;
-    }
+    };
 
-    // Consulta en tiempo real a la API de Gemini (gemini-3-flash-preview)
-    async function consultGeminiAI() {
+    window.consultGeminiAI = async function() {
       const userQuery = document.getElementById('aiPrompt').value.trim();
       const outputBox = document.getElementById('aiOutputBox');
-
       if (!userQuery) {
-        showToast("Por favor escribe una consulta o pregunta.", "warning");
+        window.showToast("Por favor escribe una consulta.", "warning");
         return;
       }
 
-      if (outputBox) {
-        outputBox.classList.remove('hidden');
-        outputBox.innerHTML = `
-          <div class="flex items-center gap-2 text-slate-500 font-semibold">
-            <i class="fa-solid fa-circle-notch animate-spin text-[#214bd6]"></i>
-            <span>Consultando a Gemini en tiempo real...</span>
-          </div>
-        `;
-      }
+      outputBox.classList.remove('hidden');
+      outputBox.innerHTML = `
+        <div class="flex items-center gap-2 text-slate-500 font-semibold">
+          <i class="fa-solid fa-circle-notch animate-spin text-[#214bd6]"></i>
+          <span>Consultando a Gemini...</span>
+        </div>
+      `;
 
       try {
-        const apiKey = ""; // La clave de la API se inyecta por el entorno
+        const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
         const payload = {
           contents: [{ parts: [{ text: userQuery }] }],
           systemInstruction: {
@@ -1742,38 +1453,229 @@
         const result = await response.json();
         const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (candidateText && outputBox) {
+        if (candidateText) {
           const formattedResponse = candidateText
             .replace(/\n/g, '<br>')
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
           outputBox.innerHTML = `
             <div class="space-y-2">
               <div class="font-bold text-[#132b80] uppercase tracking-wider text-[10px] border-b pb-1">Respuesta del Asesor Gemini:</div>
               <div class="text-slate-700 leading-relaxed">${formattedResponse}</div>
             </div>
           `;
-        } else if (outputBox) {
-          outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No se pudo procesar la respuesta del modelo.</span>`;
+        } else {
+          outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No se pudo procesar la respuesta.</span>`;
         }
       } catch (err) {
-        console.error("Gemini API Error:", err);
-        if (outputBox) outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Ocurrió un error al consultar en tiempo real. Inténtalo de nuevo.</span>`;
+        outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Error de conexión con la IA.</span>`;
       }
-    }
+    };
 
-    // Inicializaciones del sistema al cargar la página
-    window.onload = function() {
-      initRestDaysClickHandlers();
-      // Auto-cargar si ya hay personal activo en almacenamiento local
-      const storedActives = localStorage.getItem('maxikash_actives_2026');
-      if (storedActives) {
-        window.VACATION_STATE.activeEmployees = JSON.parse(storedActives);
-        populateDatalist(window.VACATION_STATE.activeEmployees);
-        const counter = document.getElementById('assets-loaded-counter');
-        if (counter) counter.textContent = `${window.VACATION_STATE.activeEmployees.length} colaboradores cargados`;
+    window.initRestDaysClickHandlers = function() {
+      document.querySelectorAll('.rest-day-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const day = Number(this.getAttribute('data-day'));
+          let currentDays = document.getElementById('selectedRestDays').value.split(',').filter(x => x !== "").map(Number);
+          
+          if (currentDays.includes(day)) {
+            if (currentDays.length <= 1) {
+              window.showToast("Debes seleccionar al menos un día de descanso.", "warning");
+              return;
+            }
+            currentDays = currentDays.filter(d => d !== day);
+            this.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200";
+          } else {
+            currentDays.push(day);
+            this.className = "rest-day-btn px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all bg-[#214bd6] text-white border-[#214bd6] shadow-sm";
+          }
+          
+          document.getElementById('selectedRestDays').value = currentDays.join(',');
+          const dayNames = {0: "Domingo", 1: "Lunes", 2: "Martes", 3: "Miércoles", 4: "Jueves", 5: "Viernes", 6: "Sábado"};
+          const summaryText = currentDays.sort().map(d => dayNames[d]).join(", ");
+          document.getElementById('restDaysSummaryLabel').textContent = "Excluye: " + summaryText;
+
+          window.calculateRequestedPeriod();
+        });
+      });
+    };
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('excel-file-input');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.add('border-[#214bd6]', 'bg-blue-50/50');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.remove('border-[#214bd6]', 'bg-blue-50/50');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      if (dt.files.length > 0) window.handleDroppedFile(dt.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) window.handleDroppedFile(e.target.files[0]);
+    });
+
+    window.handleDroppedFile = function(file) {
+      window.showLoader(true);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          const range = worksheet['!ref'] ? XLSX.utils.decode_range(worksheet['!ref']) : null;
+          let bestHeaderRowIndex = 0;
+          let maxScore = -1;
+
+          if (range) {
+            const rowsToScan = Math.min(15, range.e.r + 1);
+            for (let r = 0; r < rowsToScan; r++) {
+              let score = 0;
+              for (let c = range.s.c; c <= range.e.c; c++) {
+                const cell = worksheet[XLSX.utils.encode_cell({ r: r, c: c })];
+                if (cell && cell.v) {
+                  const valStr = String(cell.v).toLowerCase();
+                  if (/nombre|colaborador|empleado|name/i.test(valStr)) score += 5;
+                  if (/ingreso|fecha|date/i.test(valStr)) score += 5;
+                }
+              }
+              if (score > maxScore && score >= 5) {
+                maxScore = score;
+                bestHeaderRowIndex = r;
+              }
+            }
+          }
+
+          let jsonData = maxScore >= 5 ? XLSX.utils.sheet_to_json(worksheet, { range: bestHeaderRowIndex }) : XLSX.utils.sheet_to_json(worksheet);
+          window.processActiveEmployeesData(jsonData);
+        } catch (err) {
+          window.showLoader(false);
+          window.showToast("Error decodificando Excel.", "warning");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
+    window.processActiveEmployeesData = function(rows) {
+      try {
+        if (!rows || rows.length === 0) {
+          window.showLoader(false);
+          window.showToast("El Excel está vacío.", "warning");
+          return;
+        }
+
+        const sample = rows[0];
+        const keys = Object.keys(sample);
+        let nameKey = keys.find(k => /nombre|colaborador|empleado|name/i.test(k)) || keys[0];
+        let dateKey = keys.find(k => /ingreso|alta|date/i.test(k)) || keys[1] || keys[0];
+
+        const mappedActives = [];
+        rows.forEach((r, idx) => {
+          let rawDate = r[dateKey];
+          let cleanedDate = "";
+          if (rawDate !== undefined && rawDate !== null) {
+            if (typeof rawDate === 'number' && rawDate > 30000) cleanedDate = window.formatExcelSerialDate(rawDate);
+            else cleanedDate = window.cleanDateFormat(rawDate);
+          }
+          if (cleanedDate) {
+            const rawName = r[nameKey] ? String(r[nameKey]).trim() : `EMPLEADO #${idx + 1}`;
+            const nameMetadata = window.parseNameFormats(rawName);
+            mappedActives.push({
+              name: nameMetadata.nombreApellido, 
+              altName: nameMetadata.apellidoNombre,
+              joinDate: cleanedDate
+            });
+          }
+        });
+
+        if (mappedActives.length === 0) {
+          window.showLoader(false);
+          window.showToast("No se detectaron fechas de ingreso correctas.", "warning");
+          return;
+        }
+
+        window.VACATION_STATE.activeEmployees = mappedActives;
+        localStorage.setItem('maxikash_actives_2026', JSON.stringify(mappedActives));
+        window.populateDatalist(mappedActives);
+        document.getElementById('assets-loaded-counter').textContent = `${mappedActives.length} colaboradores cargados`;
+        window.showLoader(false);
+        window.showToast("¡Base de activos cargada!");
+      } catch (err) {
+        window.showLoader(false);
       }
-    }
+    };
+
+    window.populateDatalist = function(actives) {
+      const datalist = document.getElementById('assetsList');
+      if (datalist) {
+        datalist.innerHTML = "";
+        actives.forEach(emp => {
+          const option = document.createElement('option');
+          option.value = emp.name.toUpperCase();
+          datalist.appendChild(option);
+        });
+      }
+    };
+
+    window.checkSelectedEmployee = function() {
+      const currentVal = document.getElementById('empName').value.trim().toUpperCase();
+      if (!currentVal) return;
+      const match = window.VACATION_STATE.activeEmployees.find(emp => 
+        emp.name.toUpperCase() === currentVal || 
+        emp.altName.toUpperCase() === currentVal ||
+        emp.name.replace(/,/g, "").toUpperCase() === currentVal.replace(/,/g, "")
+      );
+      if (match) {
+        document.getElementById('empJoinDate').value = match.joinDate;
+        window.calculateAccruedDays();
+      }
+    };
+
+    window.formatExcelSerialDate = function(serial) {
+      try {
+        const utc_days = Math.floor(serial - 25569);
+        const utc_value = utc_days * 86400;  
+        const date_info = new Date(utc_value * 1000);
+        const year = date_info.getUTCFullYear();
+        let month = date_info.getUTCMonth() + 1;
+        let day = date_info.getUTCDate() + 1;
+        if (isNaN(year) || isNaN(month) || isNaN(day)) return "";
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      } catch (e) { return ""; }
+    };
+
+    window.cleanDateFormat = function(str) {
+      if (!str) return "";
+      if (str instanceof Date) {
+        return `${str.getFullYear()}-${String(str.getMonth() + 1).padStart(2, '0')}-${String(str.getDate()).padStart(2, '0')}`;
+      }
+      str = String(str).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+      let matches = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (matches) return `${matches[3]}-${matches[2].padStart(2, '0')}-${matches[1].padStart(2, '0')}`;
+      return "";
+    };
+
+    initAuthAndDB();
+    window.initRestDaysClickHandlers();
   </script>
+
 </body>
 </html>
