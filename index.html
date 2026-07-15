@@ -426,13 +426,16 @@
               </div>
               <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] font-semibold text-slate-600">
                 <div class="bg-white/55 p-2 rounded-lg border border-slate-100">
-                  <span class="block text-[9px] uppercase tracking-wider text-[#627194]">Días ya Gozados:</span>
+                  <span class="block text-[9px] uppercase tracking-wider text-[#627194]">Días usados/solicitados:</span>
                   <span id="daysAlreadyTaken" class="text-xs font-bold text-slate-800">0 días</span>
                 </div>
                 <div class="bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
                   <span class="block text-[9px] uppercase tracking-wider text-emerald-800">Saldo Disponible:</span>
                   <span id="daysAvailableBalance" class="text-xs font-extrabold text-emerald-700">0 días</span>
                 </div>
+              </div>
+              <div id="employeeBalanceSummary" class="bg-white/65 border border-[#bfdbfe]/70 rounded-lg px-3 py-2 text-[10px] text-slate-600 font-bold leading-relaxed">
+                Consulta un colaborador para ver su saldo pendiente de goce.
               </div>
             </div>
 
@@ -644,7 +647,7 @@
 
         </div>
 
-        <!-- ASISTENTE DE IA GEMINI EN TIEMPO REAL -->
+        <!-- ASISTENTE DE IA GROQ EN TIEMPO REAL -->
         <div class="bg-gradient-to-br from-[#1e3a8a]/5 to-[#1e40af]/10 border border-[#cbd7ea] rounded-2xl p-6 shadow-md space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -652,17 +655,23 @@
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
               </div>
               <div>
-                <h3 class="font-extrabold text-[#132b80] font-['Syne'] text-sm sm:text-base uppercase tracking-tight">Consulta Inteligente Gemini</h3>
+                <h3 class="font-extrabold text-[#132b80] font-['Syne'] text-sm sm:text-base uppercase tracking-tight">Consulta Inteligente </h3>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Asistencia Legal y de Negocio en Tiempo Real</p>
               </div>
             </div>
-            <span class="text-[9px] bg-[#214bd6]/10 text-[#214bd6] border border-[#214bd6]/20 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">Model: Flash-3</span>
+            <span class="text-[9px] bg-[#214bd6]/10 text-[#214bd6] border border-[#214bd6]/20 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">Model: Llama 3.3 70B</span>
           </div>
 
           <div class="space-y-2">
             <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider" for="aiPrompt">Pregunta o Consulta sobre la Ley o Vacaciones:</label>
             <textarea id="aiPrompt" rows="3" placeholder="Ej. ¿Cuántos días de vacaciones corresponden a un colaborador con 3 años de antigüedad en 2026?" 
               class="w-full bg-white border border-[#cbd7ea] rounded-xl p-3 text-xs focus:outline-none focus:border-[#214bd6] font-medium transition-colors"></textarea>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[11px] font-bold text-[#627194] uppercase tracking-wider" for="groqApiKey"> API Key</label>
+            <input type="password" id="groqApiKey" placeholder="Pega tu llave de Groq; se guarda solo en este navegador" oninput="saveGroqApiKey()"
+              class="w-full bg-white border border-[#cbd7ea] rounded-xl p-3 text-xs focus:outline-none focus:border-[#214bd6] font-medium transition-colors">
           </div>
 
           <div class="flex flex-wrap gap-2">
@@ -677,7 +686,7 @@
             </button>
           </div>
 
-          <button onclick="consultGeminiAI()" class="w-full bg-[#132b80] hover:bg-[#214bd6] text-white text-xs font-bold py-3 rounded-xl transition-all tracking-wide flex items-center justify-center gap-2 shadow">
+          <button onclick="consultGroqAI()" class="w-full bg-[#132b80] hover:bg-[#214bd6] text-white text-xs font-bold py-3 rounded-xl transition-all tracking-wide flex items-center justify-center gap-2 shadow">
             <i class="fa-solid fa-brain"></i>
             <span>Enviar Consulta en Tiempo Real</span>
           </button>
@@ -1081,6 +1090,7 @@
       
       // 5. Re-filtrar y re-renderizar tabla
       filterRequests();
+      calculateAccruedDays();
       showToast(`Estatus actualizado a ${newStatus} correctamente.`);
       showLoader(false);
 
@@ -1193,6 +1203,74 @@
         select.className = "w-full bg-[#fef2f2] border border-[#fecaca] rounded-xl px-4 py-3 text-xs focus:outline-none font-bold text-[#df3d3d] cursor-pointer transition-colors shadow-sm appearance-none";
         arrow.className = "pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#df3d3d]";
       }
+    };
+
+    window.getCombinedVacationHistory = function() {
+      const list = window.VACATION_STATE.rawList || [];
+      const archive = window.VACATION_STATE.archiveList || [];
+      const combined = [];
+      const seenUids = new Set();
+
+      const addItem = (item) => {
+        if (!item) return;
+        const uid = item.uid || `${item.name}-${item.startDate}-${item.endDate}`;
+        if (!seenUids.has(uid)) {
+          seenUids.add(uid);
+          combined.push(item);
+        }
+      };
+
+      list.forEach(addItem);
+      archive.forEach(addItem);
+      return combined;
+    };
+
+    window.getEmployeeVacationBalance = function(empName, joinDate, manualTakenOverride) {
+      const cleanName = (empName || '').trim().toUpperCase();
+      const years = joinDate ? calculateTenureYears(joinDate) : 0;
+      const statutoryTotal = getMexicanVacationDaysScale(years);
+      const manualTaken = Number(manualTakenOverride || 0);
+      const combined = window.getCombinedVacationHistory();
+
+      let approvedTaken = 0;
+      let pendingTaken = 0;
+      let rejectedTaken = 0;
+      let requestCount = 0;
+
+      combined.forEach(item => {
+        const itemName = (item.name || '').trim().toUpperCase();
+        const itemFormattedName = (item.name_formatted || '').trim().toUpperCase();
+        if (itemName !== cleanName && itemFormattedName !== cleanName) return;
+
+        requestCount++;
+        const status = (item.status || 'PENDIENTE').toUpperCase();
+        const days = Number(item.daysToTake || 0);
+
+        if (status === 'RECHAZADO') {
+          rejectedTaken += days;
+        } else if (status === 'PENDIENTE') {
+          pendingTaken += days;
+        } else {
+          approvedTaken += days;
+        }
+      });
+
+      const committedTaken = manualTaken + approvedTaken + pendingTaken;
+      const enjoyedTaken = manualTaken + approvedTaken;
+
+      return {
+        years,
+        statutoryTotal,
+        manualTaken,
+        approvedTaken,
+        pendingTaken,
+        rejectedTaken,
+        enjoyedTaken,
+        committedTaken,
+        requestCount,
+        availableAfterApproved: Math.max(0, statutoryTotal - enjoyedTaken),
+        availableAfterPending: Math.max(0, statutoryTotal - committedTaken)
+      };
     };
 
     // RETORNA LOS DÍAS SOLICITADOS POR UN EMPLEADO EXCLUYENDO LAS SOLICITUDES RECHAZADAS
@@ -1735,23 +1813,28 @@
       const statutoryDays = document.getElementById('statutoryDays');
       const daysAlreadyTakenEl = document.getElementById('daysAlreadyTaken');
       const daysAvailableBalanceEl = document.getElementById('daysAvailableBalance');
+      const employeeBalanceSummaryEl = document.getElementById('employeeBalanceSummary');
 
       if (!joinInput) {
         if (card) card.classList.add('hidden');
         return;
       }
 
-      const years = calculateTenureYears(joinInput);
-      const statutoryMax = getMexicanVacationDaysScale(years);
-
       const manualTaken = Number(document.getElementById('manualTakenDays').value || 0);
-      const previousTaken = window.getEmployeePreviousTakenDays(empNameInput) + manualTaken;
-      const availableBalance = Math.max(0, statutoryMax - previousTaken);
+      const balance = window.getEmployeeVacationBalance(empNameInput, joinInput, manualTaken);
+      const years = balance.years;
+      const statutoryMax = balance.statutoryTotal;
 
       if (tenureText) tenureText.textContent = `${years} ${years === 1 ? 'AÑO' : 'AÑOS'} de antigüedad calculados (Proyección 2026)`;
       if (statutoryDays) statutoryDays.textContent = `${statutoryMax} días`;
-      if (daysAlreadyTakenEl) daysAlreadyTakenEl.textContent = `${previousTaken} días`;
-      if (daysAvailableBalanceEl) daysAvailableBalanceEl.textContent = `${availableBalance} días`;
+      if (daysAlreadyTakenEl) daysAlreadyTakenEl.textContent = `${balance.committedTaken} días`;
+      if (daysAvailableBalanceEl) daysAvailableBalanceEl.textContent = `${balance.availableAfterPending} días`;
+      if (employeeBalanceSummaryEl) {
+        employeeBalanceSummaryEl.innerHTML = `
+          <div><span class="text-[#132b80]">Saldo pendiente de goce:</span> ${balance.availableAfterPending} días disponibles después de solicitudes registradas.</div>
+          <div class="text-slate-500 mt-0.5">Aprobados/gozados: ${balance.enjoyedTaken} días · Pendientes de autorización: ${balance.pendingTaken} días · Rechazados no descuentan: ${balance.rejectedTaken} días.</div>
+        `;
+      }
       
       if (card) card.classList.remove('hidden');
 
@@ -2482,45 +2565,78 @@
       document.getElementById('aiPrompt').value = promptText;
     }
 
-    // Consulta en tiempo real a la API de Gemini (gemini-3-flash-preview)
-    async function consultGeminiAI() {
+    function saveGroqApiKey() {
+      const input = document.getElementById('groqApiKey');
+      if (input) localStorage.setItem('maxikash_groq_api_key', input.value.trim());
+    }
+
+    function loadGroqApiKey() {
+      const input = document.getElementById('groqApiKey');
+      if (input) input.value = localStorage.getItem('maxikash_groq_api_key') || '';
+    }
+
+    // Consulta en tiempo real IA
+    async function consultGroqAI() {
       const userQuery = document.getElementById('aiPrompt').value.trim();
       const outputBox = document.getElementById('aiOutputBox');
+      const apiKey = (document.getElementById('groqApiKey')?.value || localStorage.getItem('maxikash_groq_api_key') || '').trim();
 
       if (!userQuery) {
         showToast("Por favor escribe una consulta o pregunta.", "warning");
         return;
       }
 
+      if (!apiKey) {
+        showToast("Agrega tu Groq API Key para consultar el asistente.", "warning");
+        return;
+      }
+
+      localStorage.setItem('maxikash_groq_api_key', apiKey);
+
       if (outputBox) {
         outputBox.classList.remove('hidden');
         outputBox.innerHTML = `
           <div class="flex items-center gap-2 text-slate-500 font-semibold">
             <i class="fa-solid fa-circle-notch animate-spin text-[#214bd6]"></i>
-            <span>Consultando a Gemini en tiempo real...</span>
+            <span>Consultando a Groq en tiempo real...</span>
           </div>
         `;
       }
 
       try {
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
         const payload = {
-          contents: [{ parts: [{ text: userQuery }] }],
-          systemInstruction: {
-            parts: [{ text: "Actúa como un asesor experto de Recursos Humanos y legislaciones laborales para MaxiKash Grupo. Brinda respuestas estructuradas, amables y claras basadas en la Ley Federal del Trabajo de México 2026 y las Vacaciones Dignas 2026." }]
-          }
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'Actúa como un asesor experto de Recursos Humanos y legislación laboral para MaxiKash Grupo. Responde en español, con claridad ejecutiva, y basa tus respuestas en la Ley Federal del Trabajo de México y las reglas de Vacaciones Dignas. No inventes políticas internas; si falta información, dilo.'
+            },
+            {
+              role: 'user',
+              content: userQuery
+            }
+          ],
+          temperature: 0.2,
+          max_completion_tokens: 700
         };
 
         const response = await fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
           body: JSON.stringify(payload)
         });
 
         const result = await response.json();
-        const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!response.ok) {
+          throw new Error(result.error?.message || `Groq API error ${response.status}`);
+        }
+
+        const candidateText = result.choices?.[0]?.message?.content;
 
         if (candidateText && outputBox) {
           const formattedResponse = candidateText
@@ -2529,7 +2645,7 @@
             
           outputBox.innerHTML = `
             <div class="space-y-2">
-              <div class="font-bold text-[#132b80] uppercase tracking-wider text-[10px] border-b pb-1">Respuesta del Asesor Gemini:</div>
+              <div class="font-bold text-[#132b80] uppercase tracking-wider text-[10px] border-b pb-1">Respuesta del Asesor Groq:</div>
               <div class="text-slate-700 leading-relaxed">${formattedResponse}</div>
             </div>
           `;
@@ -2537,8 +2653,8 @@
           outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No se pudo procesar la respuesta del modelo.</span>`;
         }
       } catch (err) {
-        console.error("Gemini API Error:", err);
-        if (outputBox) outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Ocurrió un error al consultar en tiempo real. Inténtalo de nuevo.</span>`;
+        console.error("Groq API Error:", err);
+        if (outputBox) outputBox.innerHTML = `<span class="text-[#df3d3d] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No se pudo consultar Groq: ${err.message || 'inténtalo de nuevo.'}</span>`;
       }
     }
 
@@ -2546,6 +2662,7 @@
     window.onload = function() {
       initRestDaysClickHandlers();
       updateStatusStyle();
+      loadGroqApiKey();
       const storedActives = localStorage.getItem('maxikash_actives_2026');
       if (storedActives) {
         window.VACATION_STATE.activeEmployees = JSON.parse(storedActives);
